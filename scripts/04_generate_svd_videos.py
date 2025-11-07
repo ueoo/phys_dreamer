@@ -1,6 +1,4 @@
-#!/usr/bin/env python
 import argparse
-import glob
 import os
 
 import imageio
@@ -36,9 +34,11 @@ def main():
     #### flower
     if "flower" in args.dataset_dir:
         input_frame_ids = [39, 40, 55, 59, 67, 71, 93, 103, 157, 166, 168]
+    elif "bow" in args.dataset_dir:
+        input_frame_ids = [17, 25, 33, 36, 41, 48, 120, 121, 129, 137, 144, 145, 152]
     else:
         raise ValueError(f"Unknown dataset: {args.dataset_dir}")
-    img_paths = [os.path.join(args.dataset_dir, f"{frame_id:03d}_svd.png") for frame_id in input_frame_ids]
+    img_paths = [os.path.join(args.dataset_dir, f"{frame_id:03d}.png") for frame_id in input_frame_ids]
     motion_bucket_ids = list(range(5, 11))
 
     for ip in tqdm(img_paths):
