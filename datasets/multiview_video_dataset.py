@@ -10,15 +10,15 @@ import numpy as np
 import torch
 import torchvision.transforms as transforms
 
-from cameras import Camera, focal2fov, fov2focal
 from decord import VideoReader
 from jaxtyping import Float
 from PIL import Image
-from scene_box import SceneBox
 from torch import Tensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+from datasets.cameras import Camera, focal2fov, fov2focal
+from datasets.scene_box import SceneBox
 from gaussian_3d.utils.rigid_body_utils import get_rigid_transform
 from utils.colmap_utils import (
     qvec2rotmat,
@@ -114,16 +114,16 @@ class MultiviewVideoDataset(Dataset):
     def __init__(
         self,
         data_dir,
+        video_dir,
         use_white_background=True,
         resolution=[576, 1024],
         scale_x_angle=1.0,
         use_index=None,
-        video_dir_name="videos",
     ) -> None:
         super().__init__()
 
         self.data_dir = data_dir
-        self.video_dir = os.path.join(data_dir, video_dir_name)
+        self.video_dir = video_dir
 
         self.use_white_background = use_white_background
         self.resolution = resolution
@@ -140,6 +140,9 @@ class MultiviewVideoDataset(Dataset):
             self.dataset_len = len(self.camera_list)
 
         mask_dir = os.path.join(data_dir, "masks")
+        if not os.path.exists(mask_dir):
+            self.mask_float32_list = None
+            return
         self.mask_float32_list = []
         # reed masks
         for cam in self.camera_list:
@@ -173,14 +176,13 @@ class MultiviewVideoDataset(Dataset):
                 data_dir, image_dir="images", img_hw=self.resolution, eval=True
             )
         # filter out cameras, whose video doesnt exist.
-        # self.video_name_list_list,
         loaded_video_info, camera_list, format_msg = self._parse_video_names(camera_list, self.video_dir)
         if format_msg == "FormatInVideo":
-            self.video_name_list_list = loaded_video_info
+            self.video_name_list = loaded_video_info
 
         elif format_msg == "FormatInImage":
             self.video_numpy_list = loaded_video_info
-            self.video_name_list_list = None
+            self.video_name_list = None
 
         if "num_frames" not in meta_dict:
             meta_dict["num_frames"] = len(camera_list)
@@ -218,20 +220,27 @@ class MultiviewVideoDataset(Dataset):
         self.np_uint8_rgba_list = np_uint8_rgba_list
 
     def _parse_video_names(self, camera_list, video_dir):
-        video_name_list_list = []
+        print(f"Parsing video names from {video_dir}")
+        video_name_list = []
 
         video_names = [_ for _ in os.listdir(video_dir) if _.endswith(".mp4")]
+        print(f"video_names: {video_names}")
+
+        all_image_names = [os.path.basename(cam.img_path).split(".")[0] for cam in camera_list]
+        print(f"all_image_names: {all_image_names}")
 
         if len(video_names) > 0:
             ret_camera_list = []
-            for cam in tqdm(camera_list):
-                img_name = os.path.basename(cam.img_path).split(".")[0]
-                ret_list = [_ for _ in video_names if _.startswith(img_name) and _[:4] == img_name[:4]]
-                if len(ret_list) > 0:
-                    print("video found for camera: ", cam.img_path, ret_list)
-                    video_name_list_list.append(ret_list)
-                    ret_camera_list.append(cam)
-            return video_name_list_list, ret_camera_list, "FormatInVideo"
+            for video_name in video_names:
+                if video_name.split(".")[0] in all_image_names:
+                    video_name_list.append(video_name)
+                    ret_camera_list.append(camera_list[all_image_names.index(video_name.split(".")[0])])
+                else:
+                    print(f"video name {video_name} not found in all_image_names!")
+            assert len(video_name_list) > 0, "no video found for any camera!"
+            print(f"video_name_list: {video_name_list}")
+            print(f"ret_camera_list: {ret_camera_list}")
+            return video_name_list, ret_camera_list, "FormatInVideo"
         else:
             # no video found, concate all images inside "video_dir" to a video
             # corresponding camera is: viewpoint_name = os.path.dirname(video_dir).split("/")[-1]
@@ -244,7 +253,7 @@ class MultiviewVideoDataset(Dataset):
 
             viewpoint_name = os.path.dirname(video_dir).split("/")[-1]
             ret_camera_list = []
-            for cam in tqdm(camera_list):
+            for cam in tqdm(camera_list, desc="Parsing video names"):
                 img_name = os.path.basename(cam.img_path).split(".")[0]
                 # print(img_name, viewpoint_name)
                 if viewpoint_name.startswith(img_name):
@@ -253,7 +262,7 @@ class MultiviewVideoDataset(Dataset):
             assert len(ret_camera_list) > 0, "no camera found for video!, viewpoint_name: {}".format(viewpoint_name)
             # load imgs:
             _img_list = []
-            for img_name in tqdm(img_names):
+            for img_name in tqdm(img_names, desc="Loading images"):
                 img_path = os.path.join(video_dir, img_name)
                 im_data = read_uint8_rgba(img_path, self.resolution)[..., :3]
                 _img_list.append(im_data[np.newaxis, ...])
@@ -273,11 +282,15 @@ class MultiviewVideoDataset(Dataset):
         cam = self.camera_list[idx]
         rgba = self.np_uint8_rgba_list[idx]
 
-        if self.video_name_list_list is not None:
-            video_names_list = self.video_name_list_list[idx]
-            _rand_ind = random.randint(0, len(video_names_list) - 1)
+        print(f"video_name_list: {self.video_name_list}")
 
-            video_path = os.path.join(self.video_dir, video_names_list[_rand_ind])
+        if self.video_name_list is not None:
+            video_name = self.video_name_list[idx]
+            # _rand_ind = random.randint(0, len(video_names_list) - 1)
+
+            # video_path = os.path.join(self.video_dir, video_names_list[_rand_ind])
+            video_path = os.path.join(self.video_dir, video_name)
+            assert os.path.exists(video_path), f"video path {video_path} not found!"
             video_reader = VideoReader(video_path)
             video_length = len(video_reader)
             video_clip = (
@@ -294,10 +307,10 @@ class MultiviewVideoDataset(Dataset):
 
         img = norm_data[:, :, :3] * norm_data[:, :, 3:4]
 
-        if idx > len(self.mask_float32_list):
-            mask = norm_data[:, :, 3:4]
-        else:
+        if self.mask_float32_list is not None and idx < len(self.mask_float32_list):
             mask = self.mask_float32_list[idx]
+        else:
+            mask = norm_data[:, :, 3:4]
 
         mask = torch.from_numpy(mask.astype(np.float32)).permute(2, 0, 1)
         # shape convert from HWC to CHW
@@ -325,7 +338,7 @@ class MultiviewVideoDataset(Dataset):
         camera_list = []
 
         frames = camera_transforms["frames"]
-        fovx = camera_transforms["camera_angle_x"]
+        fovx = camera_transforms["camera_angle_x"] if "camera_angle_x" in camera_transforms else None
 
         if self.scale_x_angle != 1.0:
             fovx = fovx * self.scale_x_angle
@@ -337,6 +350,10 @@ class MultiviewVideoDataset(Dataset):
             if img_hw is None:
                 image = Image.open(img_path)
                 img_hw = image.size[::-1]
+
+            if fovx is None:
+                assert "camera_angle_x" in frame, "camera_angle_x not found in frame"
+                fovx = frame["camera_angle_x"]
 
             # NeRF 'transform_matrix' is a camera-to-world transform
             c2w = np.array(frame["transform_matrix"])
@@ -440,11 +457,12 @@ if __name__ == "__main__":
     # dataset_dir = "data/multiview/dragon/merged"
     # dataset_dir = "/tmp/tmp_tyz_data/ficus/"
 
-    dataset_dir = "../../../../../dataset/3D_capture/purple_branches_colmap"
-    dataset_dir = "../../../../../dataset/physics_dreamer/llff_flower_undistorted"
+    dataset_dir = "data_NeuROK_sim/flower_images"
+    video_dir = "data_NeuROK_sim/flower_videos"
 
     dataset = MultiviewVideoDataset(
         dataset_dir,
+        video_dir,
     )
 
     data = dataset[0]

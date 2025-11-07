@@ -30,3 +30,5 @@ tqdm #==4.65.0
 trimesh #==4.0.8
 warp_lang #==0.10.1
 xatlas #==0.0.9
+wandb
+h5py

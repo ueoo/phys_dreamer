@@ -14,6 +14,8 @@ from torch import Tensor
 from torch.utils.data import Dataset
 from tqdm import tqdm
 
+from datasets.cameras import Camera, focal2fov, fov2focal
+from datasets.scene_box import SceneBox
 from gaussian_3d.utils.rigid_body_utils import get_rigid_transform
 from utils.colmap_utils import (
     qvec2rotmat,
@@ -24,9 +26,6 @@ from utils.colmap_utils import (
     read_points3D_binary,
     read_points3D_text,
 )
-
-from .cameras import Camera, focal2fov, fov2focal
-from .scene_box import SceneBox
 
 
 def read_uint8_rgba(img_path, img_hw=None):
@@ -136,8 +135,6 @@ class MultiviewImageDataset(Dataset):
             self.camera_list = [self.camera_list[i] for i in use_index]
             if load_imgs:
                 self.np_uint8_rgba_list = [self.np_uint8_rgba_list[i] for i in use_index]
-            # self.test_camera_list = [self.test_camera_list[i] for i in use_index]
-            # self.test_camera_list = self.test_camera_list
             self.dataset_len = len(self.camera_list)
 
     def _parse_dataset(self, data_dir, load_imgs=True, flip_xy=False):
@@ -262,13 +259,12 @@ class MultiviewImageDataset(Dataset):
         camera_list = []
 
         frames = camera_transforms["frames"]
-        fovx = camera_transforms["camera_angle_x"]
+        fovx = camera_transforms["camera_angle_x"] if "camera_angle_x" in camera_transforms else None
 
         if self.scale_x_angle != 1.0:
             fovx = fovx * self.scale_x_angle
 
         for frame in frames:
-            # img_path = os.path.join(self.data_dir, frame["file_path"] + ".png")
             img_path = os.path.join(self.data_dir, frame["file_path"])
             if not (
                 img_path.endswith(".png")
@@ -281,6 +277,10 @@ class MultiviewImageDataset(Dataset):
             if img_hw is None:
                 image = Image.open(img_path)
                 img_hw = image.size[::-1]
+
+            if fovx is None:
+                assert "camera_angle_x" in frame, "camera_angle_x not found in frame"
+                fovx = frame["camera_angle_x"]
 
             # NeRF 'transform_matrix' is a camera-to-world transform
             c2w = np.array(frame["transform_matrix"])

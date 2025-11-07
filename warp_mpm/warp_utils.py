@@ -1,10 +1,12 @@
-import warp as wp
 import ctypes
+
 from typing import Optional
 
+import warp as wp
+
 from warp.torch import (
-    dtype_from_torch,
     device_from_torch,
+    dtype_from_torch,
     dtype_is_compatible,
     from_torch,
 )
@@ -80,7 +82,6 @@ def from_torch_safe(t, dtype=None, requires_grad=None, grad=None):
         strides=strides,
         device=device_from_torch(t.device),
         copy=False,
-        owner=False,
         grad=grad,
         requires_grad=requires_grad,
     )
