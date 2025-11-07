@@ -25,7 +25,7 @@ from interface import (
 from jaxtyping import Float, Int, Shaped
 from omegaconf import OmegaConf
 from torch import Tensor
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 from datasets.helper import create_dataset
 from datasets.multiview_dataset import MultiviewImageDataset
@@ -733,7 +733,7 @@ class Trainer:
                 wandb_dict["last_psnr"] = last_psnr
                 wandb_dict.update(log_loss_dict)
 
-                if self.step % int(5 * self.wandb_iters) == 0:
+                if self.step % int(self.wandb_iters) == 0:
 
                     wandb_dict["rendered_video"] = wandb.Video(visual_video, fps=visual_video.shape[0])
 
@@ -766,7 +766,8 @@ class Trainer:
 
     def train(self):
         # might remove tqdm when multiple node
-        for index in tqdm(range(self.step, self.train_iters), desc="Training progress"):
+        pbar = trange(self.step, self.train_iters, total=self.train_iters, desc="Training progress")
+        while self.step < self.train_iters:
             self.train_one_step()
             if self.step % self.log_iters == self.log_iters - 1:
                 if self.accelerator.is_main_process:
@@ -774,6 +775,8 @@ class Trainer:
                     # self.test()
             # self.accelerator.wait_for_everyone()
             self.step += 1
+            pbar.update(1)
+        pbar.close()
         if self.accelerator.is_main_process:
             self.save()
 

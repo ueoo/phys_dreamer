@@ -11,7 +11,7 @@ wandb_name="flower_velo_pretrain"
 python "$PY" \
   --dataset_dir "$dataset_dir" \
   --video_dir "$video_dir" \
-  --downsample_scale 0.05 \
+  --downsample_scale 0.02 \
   --output_dir "$output_dir" \
   --use_wandb \
   --wandb_name "$wandb_name" \
