@@ -3,25 +3,84 @@ import os
 from shutil import copyfile
 
 
-svd_all_videos_path = "data_NeuROK_sim/flower_svd_videos"
+scene_name = "newton"
 
-svd_selected_videos_path = "data_NeuROK_sim/flower_videos"
+svd_all_videos_path = f"data_NeuROK_sim/{scene_name}_svd_videos"
+
+svd_selected_videos_path = f"data_NeuROK_sim/{scene_name}_videos"
 
 os.makedirs(svd_selected_videos_path, exist_ok=True)
 
-video_files = [
-    "039_svd_motion_6",
-    "040_svd_motion_8",
-    "055_svd_motion_5",
-    "059_svd_motion_7",
-    "067_svd_motion_9",
-    "071_svd_motion_10",
-    "093_svd_motion_9",
-    "103_svd_motion_8",
-    "157_svd_motion_8",
-    "166_svd_motion_10",
-    "168_svd_motion_8",
-]
+if "flower" == scene_name:
+    video_files = [
+        "039_svd_motion_6",
+        "040_svd_motion_8",
+        "055_svd_motion_5",
+        "059_svd_motion_7",
+        "067_svd_motion_9",
+        "071_svd_motion_10",
+        "093_svd_motion_9",
+        "103_svd_motion_8",
+        "157_svd_motion_8",
+        "166_svd_motion_10",
+        "168_svd_motion_8",
+    ]
+elif "bow" == scene_name:
+    video_files = [
+        "017_motion_5",
+        "025_motion_10",
+        "033_motion_10",
+        "036_motion_5",
+        "041_motion_10",
+        "048_motion_9",
+        "120_motion_9",
+        "121_motion_7",
+        "129_motion_9",
+        "144_motion_5",
+        "145_motion_10",
+    ]
+elif "box" == scene_name:
+    video_files = [
+        "065_motion_10",
+        "072_motion_6",
+        "080_motion_8",
+        "081_motion_7",
+        "088_motion_7",
+        "089_motion_6",
+        "097_motion_8",
+        "154_motion_8",
+        "158_motion_7",
+    ]
+elif "cloth" == scene_name:
+    video_files = [
+        "055_motion_8",
+        "059_motion_10",
+        "060_motion_9",
+        "061_motion_5",
+        "063_motion_7",
+        "067_motion_10",
+        "069_motion_8",
+        "072_motion_7",
+        "073_motion_5",
+        "075_motion_6",
+        "086_motion_7",
+        "088_motion_9",
+    ]
+elif "newton" == scene_name:
+    video_files = [
+        "055_motion_5",
+        "058_motion_7",
+        "059_motion_7",
+        "063_motion_5",
+        "065_motion_10",
+        "070_motion_10",
+        "071_motion_8",
+        "078_motion_9",
+        "080_motion_8",
+        "087_motion_10",
+    ]
+else:
+    raise ValueError(f"Unknown dataset: {svd_all_videos_path}")
 
 for video_file in video_files:
     base_name = video_file.split("_")[0]

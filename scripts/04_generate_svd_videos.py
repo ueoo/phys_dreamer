@@ -36,6 +36,12 @@ def main():
         input_frame_ids = [39, 40, 55, 59, 67, 71, 93, 103, 157, 166, 168]
     elif "bow" in args.dataset_dir:
         input_frame_ids = [17, 25, 33, 36, 41, 48, 120, 121, 129, 137, 144, 145, 152]
+    elif "box" in args.dataset_dir:
+        input_frame_ids = [65, 72, 80, 81, 88, 89, 97, 106, 158, 154]
+    elif "cloth" in args.dataset_dir:
+        input_frame_ids = [55, 59, 60, 61, 63, 67, 69, 72, 73, 75, 86, 88]
+    elif "newton" in args.dataset_dir:
+        input_frame_ids = [55, 58, 59, 63, 65, 70, 71, 78, 80, 87]
     else:
         raise ValueError(f"Unknown dataset: {args.dataset_dir}")
     img_paths = [os.path.join(args.dataset_dir, f"{frame_id:03d}.png") for frame_id in input_frame_ids]
