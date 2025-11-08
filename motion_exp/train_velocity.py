@@ -5,7 +5,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from motion_exp.trainer import Trainer
+from motion_exp.trainer_velocity import Trainer
 from utils.config import create_config
 
 
@@ -90,8 +90,6 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-
-    # torch.backends.cuda.matmul.allow_tf32 = True
 
     trainer = Trainer(args)
 
