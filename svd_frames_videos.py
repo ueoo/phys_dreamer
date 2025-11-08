@@ -2,31 +2,31 @@ import os
 
 
 ### Flower frames
-# 039, 039_svd_motion_6
-# 040, 040_svd_motion_8
-# 055, 055_svd_motion_5
-# 059, 059_svd_motion_7
-# 067, 067_svd_motion_9
-# 071, 071_svd_motion_10
-# 093, 093_svd_motion_9
-# 103, 103_svd_motion_8
-# 157, 157_svd_motion_8
-# 166, 166_svd_motion_10
-# 168, 168_svd_motion_8
+# 039, 039_motion_6
+# 040, 040_motion_6
+# 055, 055_motion_5
+# 059, 059_motion_8
+# 067, 067_motion_9
+# 071, 071_motion_7
+# 093, 093_motion_6
+# 103, 103_motion_8
+# 157, 157_motion_8
+# 166, 166_motion_10
+# 168, 168_motion_8
 
 
 ### Bow frames
 # 017, 017_motion_5
 # 025, 025_motion_10
 # 033, 033_motion_10
-# 036, 036_motion_5
+# 036, 036_motion_7
 # 041, 041_motion_10
 # 048, 048_motion_9
-# 120, 120_motion_9
+# 120, 120_motion_8
 # 121, 121_motion_7
 # 129, 129_motion_9
 # 144, 144_motion_5
-# 145, 145_motion_10
+# 145, 145_motion_9
 ## No good motion
 # 137,
 # 152,
