@@ -4,6 +4,7 @@ import os
 import shutil
 
 import cv2
+import numpy as np
 
 from tqdm import trange
 
@@ -11,20 +12,13 @@ from tqdm import trange
 def prepare_generative_image(
     in_path,
     out_path,
-    white_out_path=None,
     width_new=1024,
     height_new=576,
-    bg_color=[0, 0, 0],
-    source_is_white=False,
+    bg_color=[255, 255, 255],
+    to_white_background=True,
 ):
     # Original dimensions (keep alpha channel if present)
     input_im = cv2.imread(in_path, cv2.IMREAD_UNCHANGED)
-    if source_is_white:
-        # if the source image is white, invert RGB channels only
-        if input_im is not None and input_im.ndim == 3 and input_im.shape[2] == 4:
-            input_im[..., :3] = 255 - input_im[..., :3]
-        else:
-            input_im = 255 - input_im
     height_original, width_original = input_im.shape[:2]
 
     # Calculating the ratio of new dimensions
@@ -41,37 +35,34 @@ def prepare_generative_image(
     # Resizing the image
     resized_image = cv2.resize(input_im, (new_width, new_height), interpolation=cv2.INTER_AREA)
 
-    # To make sure the resized image fits exactly the desired dimensions (adding border if necessary)
-    top = int((height_new - new_height) / 2)
-    bottom = int((height_new - new_height) / 2)
-    left = int((width_new - new_width) / 2)
-    right = int((width_new - new_width) / 2)
+    # Compute top-left corner for centered placement (letterbox)
+    top = (height_new - new_height) // 2
+    left = (width_new - new_width) // 2
 
-    # Preserve alpha if present; pad with alpha=0 in border
+    # Prepare background canvas
+    if to_white_background:
+        canvas = np.full((height_new, width_new, 3), bg_color, dtype=np.uint8)
+    else:
+        canvas = np.zeros((height_new, width_new, 3), dtype=np.uint8)
+
+    # Composite/paste resized image onto canvas
     if resized_image.ndim == 3 and resized_image.shape[2] == 4:
-        border_value = [bg_color[0], bg_color[1], bg_color[2], 0]
+        # Alpha composite onto background
+        bgr = resized_image[..., :3].astype(np.float32)
+        alpha = resized_image[..., 3:4].astype(np.float32) / 255.0
+        roi = canvas[top : top + new_height, left : left + new_width].astype(np.float32)
+        comp = bgr * alpha + roi * (1.0 - alpha)
+        canvas[top : top + new_height, left : left + new_width] = comp.astype(np.uint8)
     else:
-        border_value = bg_color
+        # Ensure 3 channels
+        if resized_image.ndim == 2 or (resized_image.ndim == 3 and resized_image.shape[2] == 1):
+            bgr = cv2.cvtColor(resized_image, cv2.COLOR_GRAY2BGR)
+        else:
+            bgr = resized_image
+        canvas[top : top + new_height, left : left + new_width] = bgr
 
-    final_image = cv2.copyMakeBorder(
-        resized_image,
-        top=top,
-        bottom=bottom,
-        left=left,
-        right=right,
-        borderType=cv2.BORDER_CONSTANT,
-        value=border_value,
-    )
-    cv2.imwrite(out_path, final_image)
-    if white_out_path is None:
-        return
-    # Invert only RGB for white output; keep alpha mask
-    if final_image.ndim == 3 and final_image.shape[2] == 4:
-        white_final_image = final_image.copy()
-        white_final_image[..., :3] = 255 - white_final_image[..., :3]
-    else:
-        white_final_image = 255 - final_image
-    cv2.imwrite(white_out_path, white_final_image)
+    # Save final composite (3-channel, white background where transparent)
+    cv2.imwrite(out_path, canvas)
 
 
 def update_blender_transforms_fov(transforms_path, ratio_canvas_to_content):
@@ -105,7 +96,7 @@ def update_blender_transforms_fov(transforms_path, ratio_canvas_to_content):
 
 if __name__ == "__main__":
     data_root = "/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/data_NeuROK_sim/"
-    secen_name = "newton"
+    secen_name = "cloth"
     out_scene_name = f"{secen_name}_images"
     out_dir = os.path.join(data_root, out_scene_name)
     os.makedirs(out_dir, exist_ok=True)
@@ -134,6 +125,7 @@ if __name__ == "__main__":
             out_path,
             width_new=width_new,
             height_new=height_new,
+            to_white_background=True,
         )
 
     json_files = os.listdir(os.path.join(data_root, secen_name))
