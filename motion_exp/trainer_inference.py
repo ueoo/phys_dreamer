@@ -14,29 +14,28 @@ from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
 from tqdm import tqdm
 
-from config_demo import DemoParams
-from datasets.multiview_dataset import MultiviewImageDataset
+from datasets.helper import create_image_dataset as create_dataset
 from datasets.multiview_dataset import (
     camera_dataset_collate_fn as camera_dataset_collate_fn_img,
 )
-from datasets.multiview_video_dataset import (
-    MultiviewVideoDataset,
-    camera_dataset_collate_fn,
-)
 from gaussian_3d.scene import GaussianModel
-from local_utils import (
+from motion_exp.config_demo import DemoParams
+from motion_exp.local_utils import (
     add_constant_force,
     apply_grid_bc_w_freeze_pts,
     create_spatial_fields,
     cycle,
+)
+from motion_exp.local_utils import (
     downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
+)
+from motion_exp.local_utils import (
     find_far_points,
     get_camera_trajectory,
     render_gaussian_seq_w_mask_cam_seq_with_force_with_disp,
     render_gaussian_seq_w_mask_with_disp,
     render_gaussian_seq_w_mask_with_disp_for_figure,
 )
-from utils.config import create_config
 from utils.img_utils import compute_psnr, compute_ssim
 from utils.io_utils import save_video_mediapy
 from warp_mpm.gaussian_sim_utils import get_volume
@@ -45,39 +44,6 @@ from warp_mpm.mpm_solver_diff import MPMWARPDiff
 
 
 logger = get_logger(__name__, log_level="INFO")
-
-
-def create_dataset(args):
-
-    res = [576, 1024]
-    video_dir_name = "videos"
-
-    # dataset = MultiviewVideoDataset(
-    #     args.dataset_dir,
-    #     use_white_background=False,
-    #     resolution=res,
-    #     scale_x_angle=1.0,
-    #     video_dir_name=video_dir_name,
-    # )
-    dataset = MultiviewImageDataset(
-        args.dataset_dir,
-        use_white_background=False,
-        resolution=res,
-        scale_x_angle=1.0,
-        load_imgs=False,
-    )
-
-    test_dataset = MultiviewImageDataset(
-        args.dataset_dir,
-        use_white_background=False,
-        resolution=res,
-        # use_index=[0],
-        scale_x_angle=1.0,
-        fitler_with_renderd=False,
-        load_imgs=False,
-    )
-    print("len of test dataset", len(test_dataset))
-    return dataset, test_dataset
 
 
 class Trainer:
@@ -515,7 +481,7 @@ class Trainer:
         #    we will track foreground points with mask: self.sim_mask_in_raw_gaussian
         gaussian_dir = os.path.dirname(gaussian_path)
 
-        clean_points_path = os.path.join(gaussian_dir, "clean_object_points.ply")
+        clean_points_path = os.path.join(gaussian_dir, "point_cloud.ply")
 
         assert os.path.exists(
             clean_points_path
@@ -821,60 +787,3 @@ class Trainer:
         print("psnr for each frame: ", psnr)
         mean_psnr = psnr.mean().item()
         print("mean psnr: ", mean_psnr, "mean ssim: ", ssim.item())
-
-
-def parse_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, default="se3_field")
-    parser.add_argument("--feat_dim", type=int, default=64)
-    parser.add_argument("--num_decoder_layers", type=int, default=3)
-    parser.add_argument("--decoder_hidden_size", type=int, default=64)
-    # resolution of velocity fields
-    parser.add_argument("--spatial_res", type=int, default=32)
-    parser.add_argument("--zero_init", type=bool, default=True)
-
-    parser.add_argument("--num_frames", type=str, default=14)
-
-    # resolution of material fields
-    parser.add_argument("--sim_res", type=int, default=8)
-    parser.add_argument("--sim_output_dim", type=int, default=1)
-
-    parser.add_argument("--downsample_scale", type=float, default=0.1)
-    parser.add_argument("--top_k", type=int, default=8)
-
-    # Logging and checkpointing
-    parser.add_argument("--output_dir", type=str, default="../../output/inverse_sim")
-    parser.add_argument("--seed", type=int, default=0)
-
-    # demo parameters. related to parameters specified in configs/{scene_name}.py
-    parser.add_argument("--scene_name", type=str, default="carnation")
-    parser.add_argument("--demo_name", type=str, default="inference_demo")
-    parser.add_argument("--model_id", type=int, default=0)
-
-    # if eval_ys > 10. Then all the youngs modulus is set to eval_ys homogeneously
-    parser.add_argument("--eval_ys", type=float, default=1.0)
-    parser.add_argument("--force_id", type=int, default=1)
-    parser.add_argument("--force_mag", type=float, default=1.0)
-    parser.add_argument("--velo_scaling", type=float, default=5.0)
-    parser.add_argument("--point_id", type=int, default=0)
-    parser.add_argument("--apply_force", action="store_true", default=False)
-    parser.add_argument("--cam_id", type=int, default=0)
-    parser.add_argument("--static_camera", action="store_true", default=False)
-
-    args, extra_args = parser.parse_known_args()
-
-    return args
-
-
-if __name__ == "__main__":
-    args = parse_args()
-
-    trainer = Trainer(args)
-
-    trainer.demo(
-        velo_scaling=args.velo_scaling,
-        eval_ys=args.eval_ys,
-        static_camera=args.static_camera,
-        apply_force=args.apply_force,
-        save_name=args.demo_name,
-    )

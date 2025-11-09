@@ -11,7 +11,7 @@ class DemoParams(object):
         base_dir = os.path.dirname(__file__)
 
         # import_file_path = ".configs." + scene_name
-        import_file_path = os.path.join(base_dir, "configs", scene_name + ".py")
+        import_file_path = os.path.join("configs", scene_name + ".py")
         print("loading scene params from: ", import_file_path)
         spec = importlib.util.spec_from_file_location(scene_name, import_file_path)
         if spec is None:

@@ -17,7 +17,7 @@ def create_dataset(args):
     # scaled the raw images 512x512 to 1024x576
     dataset = MultiviewVideoDataset(
         args.dataset_dir,
-        use_white_background=False,
+        use_white_background=True,
         resolution=res,
         scale_x_angle=1.0,
         video_dir=args.video_dir,
@@ -25,7 +25,7 @@ def create_dataset(args):
 
     test_dataset = MultiviewImageDataset(
         args.dataset_dir,
-        use_white_background=False,
+        use_white_background=True,
         resolution=res,
         # use_index=list(range(0, 30, 4)),
         # use_index=[0],
@@ -36,6 +36,30 @@ def create_dataset(args):
     print("len of test dataset", len(test_dataset))
     return dataset, test_dataset
 
+
+def create_image_dataset(args):
+
+    res = [576, 1024]
+
+    dataset = MultiviewImageDataset(
+        args.dataset_dir,
+        use_white_background=True,
+        resolution=res,
+        scale_x_angle=1.0,
+        load_imgs=False,
+    )
+
+    test_dataset = MultiviewImageDataset(
+        args.dataset_dir,
+        use_white_background=True,
+        resolution=res,
+        # use_index=[0],
+        scale_x_angle=1.0,
+        fitler_with_renderd=False,
+        load_imgs=False,
+    )
+    print("len of test dataset", len(test_dataset))
+    return dataset, test_dataset
 
 
 # def create_dataset(args):
@@ -56,7 +80,7 @@ def create_dataset(args):
 #         video_dir_name = "simulated_videos"
 #     dataset = MultiviewVideoDataset(
 #         args.dataset_dir,
-#         use_white_background=False,
+#         use_white_background=True,
 #         resolution=res,
 #         scale_x_angle=1.0,
 #         video_dir_name=video_dir_name,
@@ -64,7 +88,7 @@ def create_dataset(args):
 
 #     test_dataset = MultiviewImageDataset(
 #         args.dataset_dir,
-#         use_white_background=False,
+#         use_white_background=True,
 #         resolution=res,
 #         # use_index=list(range(0, 30, 4)),
 #         # use_index=[0],

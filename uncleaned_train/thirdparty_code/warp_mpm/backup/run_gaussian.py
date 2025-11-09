@@ -182,7 +182,7 @@ def render_gaussians(
     gaussian_path = os.path.join(dataset_dir, "point_cloud.ply")
     test_dataset = MultiviewImageDataset(
         dataset_dir,
-        use_white_background=False,
+        use_white_background=True,
         resolution=[576, 1024],
         use_index=list(range(5, 30, 4)),
     )
