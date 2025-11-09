@@ -131,7 +131,7 @@ class MPMStateStruct(object):
         tensor_velocity: Optional[Tensor] = None,
         n_grid: int = 100,
         grid_lim=1.0,
-        device="cuda:0",
+        device="cuda",
         requires_grad=True,
     ):
         num_dim, n_particles = tensor_x.shape[1], tensor_x.shape[0]
@@ -184,7 +184,7 @@ class MPMStateStruct(object):
         tensor_x: Tensor,
         tensor_cov: Optional[Tensor] = None,
         tensor_velocity: Optional[Tensor] = None,
-        device="cuda:0",
+        device="cuda",
         requires_grad=True,
     ):
         # reset p_c, p_v, p_C, p_F_trial
@@ -327,7 +327,7 @@ class ParticleStateStruct(object):
         tensor_velocity: Optional[Tensor] = None,
         n_grid: int = 100,
         grid_lim=1.0,
-        device="cuda:0",
+        device="cuda",
         requires_grad=True,
     ):
         num_dim, n_particles = tensor_x.shape[1], tensor_x.shape[0]
@@ -455,7 +455,7 @@ class MPMModelStruct(object):
             shape, dtype=float, device=device, requires_grad=requires_grad
         )
 
-    def finalize_mu_lam(self, n_particles, device="cuda:0"):
+    def finalize_mu_lam(self, n_particles, device="cuda"):
         wp.launch(
             kernel=compute_mu_lam_from_E_nu_clean,
             dim=n_particles,
@@ -463,7 +463,7 @@ class MPMModelStruct(object):
             device=device,
         )
 
-    def init_other_params(self, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def init_other_params(self, n_grid=100, grid_lim=1.0, device="cuda"):
         self.grid_lim = grid_lim
         self.n_grid = n_grid
         self.grid_dim_x = n_grid
@@ -494,7 +494,7 @@ class MPMModelStruct(object):
         self.grid_v_damping_scale = 1.1  # globally applied
 
     def from_torch(
-        self, tensor_E: Tensor, tensor_nu: Tensor, device="cuda:0", requires_grad=False
+        self, tensor_E: Tensor, tensor_nu: Tensor, device="cuda", requires_grad=False
     ):
         self.E = wp.from_torch(tensor_E.contiguous(), requires_grad=requires_grad)
         self.nu = wp.from_torch(tensor_nu.contiguous(), requires_grad=requires_grad)
@@ -694,7 +694,7 @@ def get_float_array_product(
     arrayC[tid] = arrayA[tid] * arrayB[tid]
 
 
-def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -715,7 +715,7 @@ def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     return a
 
 
-def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -735,7 +735,7 @@ def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     return a
 
 
-def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -756,7 +756,7 @@ def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     return a
 
 
-def torch2warp_mat33(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_mat33(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(

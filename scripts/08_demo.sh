@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY="/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/demo.py"
+PY="./demo.py"
 SCENE_CFG="hat"  # adjust; see phys_dreamer/configs/*.py
 DATASET_DIR="/abs/path/to/your_scene"
 OUT_DIR="/abs/path/to/output/inverse_sim"

@@ -13,7 +13,6 @@ from sklearn.cluster import KMeans
 from torch import Tensor
 
 from datasets.cameras import Camera
-from fields.offset_field import TemporalKplanesOffsetfields
 from fields.se3_field import TemporalKplanesSE3fields
 from fields.triplane_field import TriplaneFields, TriplaneFieldsWithEntropy
 from gaussian_3d.gaussian_renderer.flow_depth_render import render_flow_depth_w_gaussian
@@ -43,11 +42,10 @@ def load_motion_model(model, checkpoint_path):
 def create_spatial_fields(args, output_dim, aabb: Float[Tensor, "2 3"], add_entropy=True):
 
     sp_res = args.sim_res
-
     resolutions = [sp_res, sp_res, sp_res]
     reduce = "sum"
 
-    if args.entropy_cls > 0 and add_entropy:
+    if hasattr(args, "entropy_cls") and args.entropy_cls > 0 and add_entropy:
         model = TriplaneFieldsWithEntropy(
             aabb,
             resolutions,
@@ -116,6 +114,8 @@ def create_velocity_model(
     aabb: Float[Tensor, "2 3"],
 ):
 
+    from fields.offset_field import TemporalKplanesOffsetfields
+
     sp_res = args.sim_res
     resolutions = [sp_res, sp_res, sp_res, (args.num_frames) // 2 + 1]
     reduce = "sum"
@@ -149,7 +149,7 @@ def create_svd_model(model_name="svd_full", ckpt_path=None):
         config.model.params.ckpt_path = ckpt_path
 
     s_time = time()
-    # model will automatically load when create
+
     model, msg = load_model_from_config(config, None)
 
     state["config"] = config
@@ -853,13 +853,13 @@ def render_gaussian_seq_w_mask_cam_seq_with_force_with_disp(
 
             start = start  # + np.array([540.0, 288.0])
 
-            img = cv2.circle(img, (int(start[0]), int(start[1])), 40, (255, 255, 255), 5)
+            img = cv2.circle(img, (int(start[0]), int(start[1])), 40, (255, 255, 255), 8)
 
             # draw arrow in img
             end = start + vec_2d * force_in_2d_scale
             end = end.astype(np.int32)
             start = start.astype(np.int32)
-            img = cv2.arrowedLine(img, (start[0], start[1]), (end[0], end[1]), (255, 255, 0), 4)
+            img = cv2.arrowedLine(img, (start[0], start[1]), (end[0], end[1]), (0, 255, 255), 8)
 
         img = img.transpose(2, 0, 1)
         ret_img_list.append(img[None, ...])
@@ -926,6 +926,65 @@ def downsample_with_kmeans_gpu(points_array: torch.Tensor, num_points: int):
     centroids, features = kmeans(points_array, features)
 
     ret_points = centroids.squeeze(0)
+    e_time = time()
+    print("=> downsample with kmeans takes ", e_time - s_time, " seconds")
+
+    # [np_subsample, 3]
+    return ret_points
+
+
+@torch.no_grad()
+def downsample_with_kmeans_gpu_with_chunk(points_array: torch.Tensor, num_points: int):
+    # split the points_array into chunks, and then do kmeans on each chunk
+    #   to save memory.
+
+    from kmeans_gpu import KMeans
+
+    points_array_sum = points_array.sum(dim=1)
+    arg_idx = torch.argsort(points_array_sum, descending=True)
+    points_array = points_array[arg_idx, :]
+
+    features = torch.ones(1, 1, points_array.shape[0], device=points_array.device)
+    points_array = points_array.unsqueeze(0)
+    # Forward
+
+    print(
+        "=> staring downsample with kmeans from ",
+        points_array.shape[1],
+        " points to ",
+        num_points,
+        " points",
+        points_array.shape,
+    )
+    s_time = time()
+
+    num_raw_points = points_array.shape[1]
+    chunk_size = 150000
+
+    num_chunks = num_raw_points // chunk_size + 1
+
+    ret_list = []
+    for i in range(num_chunks):
+
+        start = i * chunk_size
+        end = min((i + 1) * chunk_size, num_raw_points)
+        points_chunk = points_array[:, start:end, :]
+        features_chunk = features[:, :, start:end]
+
+        num_target_points = min(chunk_size, max(1, num_points // num_chunks))
+
+        kmeans = KMeans(
+            n_clusters=num_target_points,
+            max_iter=100,
+            tolerance=1e-4,
+            distance="euclidean",
+            sub_sampling=None,
+            max_neighbors=15,
+        )
+        centroids, _ = kmeans(points_chunk, features_chunk)
+        ret_list.append(centroids.squeeze(0))
+
+    ret_points = torch.cat(ret_list, dim=0)
     e_time = time()
     print("=> downsample with kmeans takes ", e_time - s_time, " seconds")
 

@@ -10,11 +10,11 @@ from mpm_utils import *
 
 
 class MPM_Simulator_WARP:
-    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.initialize(n_particles, n_grid, grid_lim, device=device)
         self.time_profile = {}
 
-    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.n_particles = n_particles
 
         self.mpm_model = MPMModelStruct()
@@ -143,7 +143,7 @@ class MPM_Simulator_WARP:
 
     # the h5 file should store particle initial position and volume.
     def load_from_sampling(
-        self, sampling_h5, n_grid=100, grid_lim=1.0, device="cuda:0"
+        self, sampling_h5, n_grid=100, grid_lim=1.0, device="cuda"
     ):
         if not os.path.exists(sampling_h5):
             print("h5 file cannot be found at ", os.getcwd() + sampling_h5)
@@ -201,7 +201,7 @@ class MPM_Simulator_WARP:
         tensor_velocity=None,
         n_grid=100,
         grid_lim=1.0,
-        device="cuda:0",
+        device="cuda",
     ):
         self.dim, self.n_particles = tensor_x.shape[1], tensor_x.shape[0]
         assert tensor_x.shape[0] == tensor_volume.shape[0]
@@ -248,10 +248,10 @@ class MPM_Simulator_WARP:
         print("Total particles: ", self.n_particles)
 
     # must give density. mass will be updated as density * volume
-    def set_parameters(self, device="cuda:0", **kwargs):
+    def set_parameters(self, device="cuda", **kwargs):
         self.set_parameters_dict(device, kwargs)
 
-    def set_parameters_dict(self, kwargs={}, device="cuda:0"):
+    def set_parameters_dict(self, kwargs={}, device="cuda"):
         if "material" in kwargs:
             if kwargs["material"] == "jelly":
                 self.mpm_model.material = 0
@@ -386,7 +386,7 @@ class MPM_Simulator_WARP:
                 device=device,
             )
 
-    def finalize_mu_lam(self, device="cuda:0"):
+    def finalize_mu_lam(self, device="cuda"):
         wp.launch(
             kernel=compute_mu_lam_from_E_nu,
             dim=self.n_particles,
@@ -394,7 +394,7 @@ class MPM_Simulator_WARP:
             device=device,
         )
 
-    def p2g2p(self, step, dt, device="cuda:0"):
+    def p2g2p(self, step, dt, device="cuda"):
         grid_size = (
             self.mpm_model.grid_dim_x,
             self.mpm_model.grid_dim_y,
@@ -518,7 +518,7 @@ class MPM_Simulator_WARP:
 
     # set particle densities to all_particle_densities,
     def reset_densities_and_update_masses(
-        self, all_particle_densities, device="cuda:0"
+        self, all_particle_densities, device="cuda"
     ):
         all_particle_densities = all_particle_densities.clone().detach()
         self.mpm_state.particle_density = torch2warp_float(
@@ -536,21 +536,21 @@ class MPM_Simulator_WARP:
         )
 
     # clone = True makes a copy, not necessarily needed
-    def import_particle_x_from_torch(self, tensor_x, clone=True, device="cuda:0"):
+    def import_particle_x_from_torch(self, tensor_x, clone=True, device="cuda"):
         if tensor_x is not None:
             if clone:
                 tensor_x = tensor_x.clone().detach()
             self.mpm_state.particle_x = torch2warp_vec3(tensor_x, dvc=device)
 
     # clone = True makes a copy, not necessarily needed
-    def import_particle_v_from_torch(self, tensor_v, clone=True, device="cuda:0"):
+    def import_particle_v_from_torch(self, tensor_v, clone=True, device="cuda"):
         if tensor_v is not None:
             if clone:
                 tensor_v = tensor_v.clone().detach()
             self.mpm_state.particle_v = torch2warp_vec3(tensor_v, dvc=device)
 
     # clone = True makes a copy, not necessarily needed
-    def import_particle_F_from_torch(self, tensor_F, clone=True, device="cuda:0"):
+    def import_particle_F_from_torch(self, tensor_F, clone=True, device="cuda"):
         if tensor_F is not None:
             if clone:
                 tensor_F = tensor_F.clone().detach()
@@ -558,7 +558,7 @@ class MPM_Simulator_WARP:
             self.mpm_state.particle_F = torch2warp_mat33(tensor_F, dvc=device)
 
     # clone = True makes a copy, not necessarily needed
-    def import_particle_C_from_torch(self, tensor_C, clone=True, device="cuda:0"):
+    def import_particle_C_from_torch(self, tensor_C, clone=True, device="cuda"):
         if tensor_C is not None:
             if clone:
                 tensor_C = tensor_C.clone().detach()
@@ -576,7 +576,7 @@ class MPM_Simulator_WARP:
         F_tensor = F_tensor.reshape(-1, 9)
         return F_tensor
 
-    def export_particle_R_to_torch(self, device="cuda:0"):
+    def export_particle_R_to_torch(self, device="cuda"):
         with wp.ScopedTimer(
             "compute_R_from_F",
             synchronize=True,
@@ -599,7 +599,7 @@ class MPM_Simulator_WARP:
         C_tensor = C_tensor.reshape(-1, 9)
         return C_tensor
 
-    def export_particle_cov_to_torch(self, device="cuda:0"):
+    def export_particle_cov_to_torch(self, device="cuda"):
         if not self.mpm_model.update_cov_with_F:
             with wp.ScopedTimer(
                 "compute_cov_from_F",
@@ -864,7 +864,7 @@ class MPM_Simulator_WARP:
         size=[1, 1, 1],
         num_dt=1,
         start_time=0.0,
-        device="cuda:0",
+        device="cuda",
     ):
         impulse_param = Impulse_modifier()
         impulse_param.start_time = start_time
@@ -906,7 +906,7 @@ class MPM_Simulator_WARP:
         self.pre_p2g_operations.append(apply_force)
 
     def enforce_particle_velocity_translation(
-        self, point, size, velocity, start_time, end_time, device="cuda:0"
+        self, point, size, velocity, start_time, end_time, device="cuda"
     ):
         # first select certain particles based on position
 
@@ -962,7 +962,7 @@ class MPM_Simulator_WARP:
         translation_scale,
         start_time,
         end_time,
-        device="cuda:0",
+        device="cuda",
     ):
         normal_scale = 1.0 / wp.sqrt(
             float(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2)

@@ -43,7 +43,7 @@ class MPMDifferentiableSimulation(autograd.Function):
         particle_density: Optional[Float[Tensor, "n"] | Float[Tensor, "1"]] = None,
         density_change_mask: Optional[Int[Tensor, "n"]] = None,
         static_pos: Optional[Float[Tensor, "n 3"]] = None,
-        device: str = "cuda:0",
+        device: str = "cuda",
         requires_grad: bool = True,
         extra_no_grad_steps: int = 0,
     ) -> Float[Tensor, "n 3"]:
@@ -285,7 +285,7 @@ class MPMDifferentiableSimulationWCheckpoint(autograd.Function):
         nu: Float[Tensor, "n"] | Float[Tensor, "1"],
         particle_density: Optional[Float[Tensor, "n"] | Float[Tensor, "1"]] = None,
         query_mask: Optional[Int[Tensor, "n"]] = None,
-        device: str = "cuda:0",
+        device: str = "cuda",
         requires_grad: bool = True,
         extra_no_grad_steps: int = 0,
     ) -> Tuple[Float[Tensor, "n 3"], Float[Tensor, "n 3"], Float[Tensor, "n 9"], Float[Tensor, "n 9"]]:
@@ -602,7 +602,7 @@ class MPMDifferentiableSimulationClean(autograd.Function):
         nu: Float[Tensor, "n"] | Float[Tensor, "1"],
         particle_density: Optional[Float[Tensor, "n"] | Float[Tensor, "1"]] = None,
         query_mask: Optional[Int[Tensor, "n"]] = None,
-        device: str = "cuda:0",
+        device: str = "cuda",
         requires_grad: bool = True,
         extra_no_grad_steps: int = 0,
     ) -> Tuple[

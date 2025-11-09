@@ -45,11 +45,9 @@ def init_volume(xyz, grid=[-1, 1], num_grid=20):
     pass
 
 
-def run_mpm_gaussian(input_dir, output_dir=None, fps=6, device=0):
+def run_mpm_gaussian(input_dir, output_dir=None, fps=6, device="cuda"):
     wp.init()
     wp.config.verify_cuda = True
-
-    device = "cuda:{}".format(device)
 
     gaussian_dict, scale, shift = load_gaussians(input_dir)
 
@@ -156,8 +154,7 @@ def run_mpm_gaussian(input_dir, output_dir=None, fps=6, device=0):
     render_gaussians(pos_list, save_name)
 
 
-def code_test(input_dir, device=0):
-    device = "cuda:{}".format(device)
+def code_test(input_dir, device="cuda"):
     gaussian_dict, scale, shift = load_gaussians(input_dir)
     pos = gaussian_dict["position"]
 

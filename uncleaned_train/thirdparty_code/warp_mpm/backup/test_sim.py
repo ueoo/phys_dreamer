@@ -1,4 +1,4 @@
-import warp as wp 
+import warp as wp
 import numpy as np
 import torch
 
@@ -42,7 +42,7 @@ def vec3_add(mpm_state: MPMStateStruct, selection: wp.array(dtype=wp.float32), d
                 wp.atomic_add(mpm_state.particle_x, tid, velocity[tid] * mpm_state.particle_vol[tid])
 
                 # x[tid] += velocity[tid] * dt # error, no support of +=
-    
+
 @wp.kernel
 def loss_kernel(mpm_state: MPMStateStruct,  loss: wp.array(dtype=float)):
 
@@ -59,21 +59,21 @@ def main():
     wp.config.verify_cuda = True
 
     device = 0
-    device = "cuda:{}".format(device)
+    device = "cuda"
 
 
     x = np.random.rand(100, 3).astype(np.float32)
     velocity = np.random.rand(100, 3).astype(np.float32)
     dt = 0.1
 
-    
+
     # mpm_state = MPMStateStruct()
     # mpm_state.particle_x = wp.array(x, device=device, dtype=wp.vec3,  requires_grad=True)
     # mpm_state.particle_v = wp.array(velocity, device=device, dtype=wp.vec3, requires_grad=True)
     # mpm_state.particle_vol = wp.full(shape=100, value=1, device=device, dtype=wp.float32, requires_grad=False)
-    
+
     mpm_solver = MPM_Simulator_WARPDiff(x, velocity, np.ones(100, dtype=np.float32), device=device)
-    
+
     selection = wp.zeros(100, device=device, dtype=wp.float32)
 
     loss = torch.zeros(1, device=device)
@@ -85,7 +85,7 @@ def main():
             wp.launch(vec3_add, dim=100, inputs=[mpm_solver.mpm_state, selection, dt], device=device)
         wp.launch(loss_kernel, dim=100, inputs=[mpm_solver.mpm_state, loss], device=device)
 
-    tape.backward(loss) 
+    tape.backward(loss)
 
     v_grad = mpm_solver.mpm_state.particle_v.grad
     x_grad = mpm_solver.mpm_state.particle_x.grad
@@ -93,5 +93,5 @@ def main():
 
     from IPython import embed; embed()
 
-if __name__ == "__main__":  
+if __name__ == "__main__":
     main()

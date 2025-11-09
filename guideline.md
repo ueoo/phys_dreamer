@@ -14,13 +14,13 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
 ### Codebase overview (what lives where)
 - 3D Gaussians + renderer:
   - `phys_dreamer/gaussian_3d/` is a light copy of the official 3D Gaussian Splatting project, with minor additions for force rendering (README notes the upstream):
-    ```1:3:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer_fork/physdreamer/gaussian_3d/README.md
+    ```1:3:._fork/physdreamer/gaussian_3d/README.md
     This folder is mainly a copy paste from https://github.com/graphdeco-inria/gaussian-splatting
 
     We add some function to render the applied external force.
     ```
   - Cameras and scene loading for COLMAP/Blender formats live in `gaussian_3d/scene/`, where COLMAP `sparse/0` or `transforms_train.json` is parsed and a `cameras.json` is emitted for the model path. It can also export `point_cloud.ply` per iteration for reuse:
-    ```36:76:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/gaussian_3d/scene/__init__.py
+    ```36:76:./gaussian_3d/scene/__init__.py
     class Scene:
         ...
         if os.path.exists(os.path.join(args.source_path, "sparse")):
@@ -41,7 +41,7 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
     ```
 - Data and camera utilities:
   - `datasets/cameras.py` defines a `Camera` with FoVx/FoVy, world-view/projection transforms, and interpolation; this encodes the camera math used across the project:
-    ```12:76:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/datasets/cameras.py
+    ```12:76:./datasets/cameras.py
     class Camera(nn.Module):
         def __init__( self, R: np.ndarray, T: np.ndarray, FoVx, FoVy, img_path, trans=np.array([0.0, 0.0, 0.0]),
             scale=1.0, data_device="cuda", img_hw: Tuple[int, int] = (800, 800), timestamp: float = 0.0, ):
@@ -55,14 +55,14 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
             ]).to(self.data_device)
     ```
   - Dataset (images + videos) loader: `datasets/multiview_video_dataset.py` supports COLMAP (`sparse/0`) or Blender-style `transforms_train.json`. It expects a `videos/` (or configurable) folder containing either mp4s (named with a prefix matching image names) or a folder of PNG frames:
-    ```114:132:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/datasets/multiview_video_dataset.py
+    ```114:132:./datasets/multiview_video_dataset.py
     class MultiviewVideoDataset(Dataset):
         def __init__( self, data_dir, use_white_background=True, resolution=[576, 1024], scale_x_angle=1.0, use_index=None, video_dir_name="videos",):
             self.data_dir = data_dir
             self.video_dir = os.path.join(data_dir, video_dir_name)
             self._parse_dataset(data_dir)
     ```
-    ```220:264:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/datasets/multiview_video_dataset.py
+    ```220:264:./datasets/multiview_video_dataset.py
     def _parse_video_names(self, camera_list, video_dir):
         video_names = [_ for _ in os.listdir(video_dir) if _.endswith(".mp4")]
         if len(video_names) > 0:
@@ -80,7 +80,7 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
   - Stable Video Diffusion integration is under `diffusion/` with `sv_diffusion_engine.py` and helpers in `utils/svd_helpper.py` (loads `sgm` configs/ckpts). You don’t have to use these to generate videos; any SVD pipeline that outputs mp4s is fine, as long as you place them where the dataset loader expects.
 - MPM and training:
   - Velocity pretraining: `motion_exp/fast_train_velocity.py` (uses 3DGS + k-means downsampling + Warp MPM; learns an initial velocity field) with CLI in the file:
-    ```1040:1123:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/motion_exp/fast_train_velocity.py
+    ```1040:1123:./motion_exp/fast_train_velocity.py
     def parse_args():
         parser = argparse.ArgumentParser()
         parser.add_argument("--dataset_dir", type=str, default=".../alocasia_nerfstudio")
@@ -94,7 +94,7 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
     ```
     It expects a 3DGS point cloud at `dataset_dir/point_cloud.ply` and (optionally) additional PLYs that define constraints (see Data format below).
   - Material training: `motion_exp/train_material.py` learns a spatial material field, conditioning on short videos in `dataset_dir/<video_dir_name>`. It also expects `dataset_dir/point_cloud.ply` and can load the velocity pretrain checkpoint:
-    ```1320:1409:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/motion_exp/train_material.py
+    ```1320:1409:./motion_exp/train_material.py
     def parse_args():
         parser.add_argument("--dataset_dir", type=str, default=".../hat_nerfstudio/")
         parser.add_argument("--video_dir_name", type=str, default="videos")
@@ -120,11 +120,11 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
   - Intrinsics: FoVx/FoVy computed from focal and image resolution (`fov2focal` / `focal2fov`).
   - Extrinsics: OpenGL/Blender c2w are converted to COLMAP convention by flipping Y/Z, then inverted to w2c; rotation is stored transposed for the CUDA renderer.
   - See the exact conversions:
-    ```172:192:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/datasets/cameras.py
+    ```172:192:./datasets/cameras.py
     def interpolate_cameras(R1, t1, R2, t2, steps=10):
         # quaternions slerp + linear T
     ```
-    ```235:287:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/gaussian_3d/scene/dataset_readers.py
+    ```235:287:./gaussian_3d/scene/dataset_readers.py
     # Blender transforms JSON → R, T, FoVx, FoVy, image path
     c2w = np.array(frame["transform_matrix"])
     c2w[:3, 1:3] *= -1
@@ -138,7 +138,7 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
   - `stem_points.ply` (optional): marks denser subregions (e.g., a stem).
   - `internal_filled_points.ply` (optional): additional interior points to fill the object for simulation stability.
   - Where these are used:
-    ```331:356:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/motion_exp/fast_train_velocity.py
+    ```331:356:./motion_exp/fast_train_velocity.py
     filled_in_points_path = os.path.join(dataset_dir, "internal_filled_points.ply")
     ...
     moving_pts_path = os.path.join(dataset_dir, "moving_part_points.ply")
@@ -172,7 +172,7 @@ I'll outline the code structure, data formats/conventions, typical issues, and t
   - NVIDIA Warp (used for MPM) depends on GPU driver/compute capability; ensure a compatible Warp version and CUDA toolchain.
 - OOM during KMeans downsampling on GPU:
   - Switch to the CPU implementation as advised in `README_infer.md` if you hit OOM; flip to `downsample_with_kmeans` (CPU) instead of the GPU variant:
-    ```11:21:/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/README_infer.md
+    ```11:21:./README_infer.md
     # uncomment CPU version in inference.py to avoid GPU OOM
     ```
 - SVD weights/paths:
@@ -203,7 +203,7 @@ conda activate physdreamer
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
 
 # Core requirements
-pip install -r /svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/requirements.txt
+pip install -r ./requirements.txt
 
 # Build diff-gaussian-rasterization (follow their readme)
 # https://github.com/graphdeco-inria/diff-gaussian-rasterization
@@ -363,7 +363,7 @@ python 05_make_sim_points.py --dataset_dir "$DATASET_DIR" \
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY=/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/motion_exp/fast_train_velocity.py
+PY=./motion_exp/fast_train_velocity.py
 DATASET_DIR="/abs/path/to/your_scene"
 OUT_DIR="/abs/path/to/output/inverse_sim"
 WANDB_NAME="your_scene_velo_pretrain"
@@ -387,7 +387,7 @@ python "$PY" \
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY=/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/motion_exp/train_material.py
+PY=./motion_exp/train_material.py
 DATASET_DIR="/abs/path/to/your_scene"
 OUT_DIR="/abs/path/to/output/inverse_sim"
 
@@ -414,7 +414,7 @@ python "$PY" \
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY=/svl/u/yuegao/NeuROK/PhysDreamer/phys_dreamer/demo.py
+PY=./demo.py
 SCENE_CFG="hat"  # or "alocasia", "carnation", etc. (adjust your dataset paths in the config file accordingly)
 OUT_DIR="/abs/path/to/output/inverse_sim"
 

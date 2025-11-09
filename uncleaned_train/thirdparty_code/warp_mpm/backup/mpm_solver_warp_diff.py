@@ -11,15 +11,15 @@ from typing import Optional, Union, Sequence, Any
 
 
 class MPM_Simulator_WARPDiff(object):
-    # def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    # def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
     #     self.initialize(n_particles, n_grid, grid_lim, device=device)
     #     self.time_profile = {}
 
-    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.initialize(n_particles, n_grid, grid_lim, device=device)
         self.time_profile = {}
 
-    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.n_particles = n_particles
 
         self.time = 0.0
@@ -36,10 +36,10 @@ class MPM_Simulator_WARPDiff(object):
         self.particle_velocity_modifier_params = []
 
     # must give density. mass will be updated as density * volume
-    def set_parameters(self, device="cuda:0", **kwargs):
+    def set_parameters(self, device="cuda", **kwargs):
         self.set_parameters_dict(device, kwargs)
 
-    def set_parameters_dict(self, mpm_model, mpm_state, kwargs={}, device="cuda:0"):
+    def set_parameters_dict(self, mpm_model, mpm_state, kwargs={}, device="cuda"):
         if "material" in kwargs:
             if kwargs["material"] == "jelly":
                 mpm_model.material = 0
@@ -105,8 +105,8 @@ class MPM_Simulator_WARPDiff(object):
         if "grid_v_damping_scale" in kwargs:
             mpm_model.grid_v_damping_scale = kwargs["grid_v_damping_scale"]
 
-    def set_E_nu(self, mpm_model, E: float, nu: float, device="cuda:0"):
-        
+    def set_E_nu(self, mpm_model, E: float, nu: float, device="cuda"):
+
         wp.launch(
             kernel=set_value_to_float_array,
             dim=self.n_particles,
@@ -120,7 +120,7 @@ class MPM_Simulator_WARPDiff(object):
             device=device,
         )
 
-    def p2g2p(self, mpm_model, mpm_state, step, dt, device="cuda:0"):
+    def p2g2p(self, mpm_model, mpm_state, step, dt, device="cuda"):
         grid_size = (
             mpm_model.grid_dim_x,
             mpm_model.grid_dim_y,
@@ -499,7 +499,7 @@ class MPM_Simulator_WARPDiff(object):
         size=[1, 1, 1],
         num_dt=1,
         start_time=0.0,
-        device="cuda:0",
+        device="cuda",
     ):
         impulse_param = Impulse_modifier()
         impulse_param.start_time = start_time
@@ -541,7 +541,7 @@ class MPM_Simulator_WARPDiff(object):
         self.pre_p2g_operations.append(apply_force)
 
     def enforce_particle_velocity_translation(
-        self, mpm_state, point, size, velocity, start_time, end_time, device="cuda:0"
+        self, mpm_state, point, size, velocity, start_time, end_time, device="cuda"
     ):
         # first select certain particles based on position
 
@@ -598,7 +598,7 @@ class MPM_Simulator_WARPDiff(object):
         translation_scale,
         start_time,
         end_time,
-        device="cuda:0",
+        device="cuda",
     ):
         normal_scale = 1.0 / wp.sqrt(
             float(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2)
@@ -721,13 +721,13 @@ class MPM_Simulator_WARPDiff(object):
             )
 
     def enforce_particle_velocity_by_mask(
-        self, mpm_state, selection_mask:torch.Tensor, velocity, start_time, end_time, device="cuda:0"
+        self, mpm_state, selection_mask:torch.Tensor, velocity, start_time, end_time, device="cuda"
     ):
         # first select certain particles based on position
 
         velocity_modifier_params = ParticleVelocityModifier()
 
-        
+
         velocity_modifier_params.velocity = wp.vec3(
             velocity[0], velocity[1], velocity[2]
         )

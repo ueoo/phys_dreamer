@@ -101,7 +101,7 @@ class Dirichlet_collider:
     horizontal_axis_1: wp.vec3
     horizontal_axis_2: wp.vec3
     half_height_and_radius: wp.vec2
-    
+
 
 
 @wp.struct
@@ -165,7 +165,7 @@ class ParticleVelocityModifier:
 
     horizontal_axis_1: wp.vec3
     horizontal_axis_2: wp.vec3
-    
+
     start_time: float
 
     end_time: float
@@ -235,7 +235,7 @@ def get_float_array_product(
     arrayC[tid] = arrayA[tid] * arrayB[tid]
 
 
-def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -255,7 +255,7 @@ def torch2warp_quat(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     a.tensor = t
     return a
 
-def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -274,7 +274,7 @@ def torch2warp_float(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     a.tensor = t
     return a
 
-def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(
@@ -295,7 +295,7 @@ def torch2warp_vec3(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
     return a
 
 
-def torch2warp_mat33(t, copy=False, dtype=warp.types.float32, dvc="cuda:0"):
+def torch2warp_mat33(t, copy=False, dtype=warp.types.float32, dvc="cuda"):
     assert t.is_contiguous()
     if t.dtype != torch.float32 and t.dtype != torch.int32:
         raise RuntimeError(

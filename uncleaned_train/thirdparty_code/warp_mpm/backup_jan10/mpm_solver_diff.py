@@ -10,15 +10,15 @@ from typing import Optional, Union, Sequence, Any
 
 
 class MPMWARPDiff(object):
-    # def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    # def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
     #     self.initialize(n_particles, n_grid, grid_lim, device=device)
     #     self.time_profile = {}
 
-    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def __init__(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.initialize(n_particles, n_grid, grid_lim, device=device)
         self.time_profile = {}
 
-    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda:0"):
+    def initialize(self, n_particles, n_grid=100, grid_lim=1.0, device="cuda"):
         self.n_particles = n_particles
 
         self.time = 0.0
@@ -35,10 +35,10 @@ class MPMWARPDiff(object):
         self.particle_velocity_modifier_params = []
 
     # must give density. mass will be updated as density * volume
-    def set_parameters(self, device="cuda:0", **kwargs):
+    def set_parameters(self, device="cuda", **kwargs):
         self.set_parameters_dict(device, kwargs)
 
-    def set_parameters_dict(self, mpm_model, mpm_state, kwargs={}, device="cuda:0"):
+    def set_parameters_dict(self, mpm_model, mpm_state, kwargs={}, device="cuda"):
         if "material" in kwargs:
             if kwargs["material"] == "jelly":
                 mpm_model.material = 0
@@ -104,7 +104,7 @@ class MPMWARPDiff(object):
         if "grid_v_damping_scale" in kwargs:
             mpm_model.grid_v_damping_scale = kwargs["grid_v_damping_scale"]
 
-    def set_E_nu(self, mpm_model, E: float, nu: float, device="cuda:0"):
+    def set_E_nu(self, mpm_model, E: float, nu: float, device="cuda"):
 
         if isinstance(E, float):
             wp.launch(
@@ -119,7 +119,7 @@ class MPMWARPDiff(object):
                 dim=self.n_particles,
                 inputs=[mpm_model.E, E],
                 device=device,
-            ) 
+            )
 
         if isinstance(nu, float):
             wp.launch(
@@ -136,7 +136,7 @@ class MPMWARPDiff(object):
                 device=device,
             )
 
-    def p2g2p(self, mpm_model, mpm_state, step, dt, device="cuda:0"):
+    def p2g2p(self, mpm_model, mpm_state, step, dt, device="cuda"):
         grid_size = (
             mpm_model.grid_dim_x,
             mpm_model.grid_dim_y,
@@ -181,9 +181,9 @@ class MPMWARPDiff(object):
             )
 
         # compute stress = stress(returnMap(F_trial))
-        # F_trail => F                    # TODO: this is overite.. 
-        # F, SVD(F), lam, mu => Stress.   # TODO: this is overite.. 
-            
+        # F_trail => F                    # TODO: this is overite..
+        # F, SVD(F), lam, mu => Stress.   # TODO: this is overite..
+
         with wp.ScopedTimer(
             "compute_stress_from_F_trial",
             synchronize=True,
@@ -529,7 +529,7 @@ class MPMWARPDiff(object):
         size=[1, 1, 1],
         num_dt=1,
         start_time=0.0,
-        device="cuda:0",
+        device="cuda",
     ):
         impulse_param = Impulse_modifier()
         impulse_param.start_time = start_time
@@ -571,7 +571,7 @@ class MPMWARPDiff(object):
         self.pre_p2g_operations.append(apply_force)
 
     def enforce_particle_velocity_translation(
-        self, mpm_state, point, size, velocity, start_time, end_time, device="cuda:0"
+        self, mpm_state, point, size, velocity, start_time, end_time, device="cuda"
     ):
         # first select certain particles based on position
 
@@ -628,7 +628,7 @@ class MPMWARPDiff(object):
         translation_scale,
         start_time,
         end_time,
-        device="cuda:0",
+        device="cuda",
     ):
         normal_scale = 1.0 / wp.sqrt(
             float(normal[0] ** 2 + normal[1] ** 2 + normal[2] ** 2)

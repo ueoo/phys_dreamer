@@ -7,7 +7,7 @@ wp.init()
 wp.config.verify_cuda = True
 
 
-dvc = "cuda:0"
+dvc = "cuda"
 
 mpm_solver = MPM_Simulator_WARP(10) # initialize with whatever number is fine. it will be reintialized
 

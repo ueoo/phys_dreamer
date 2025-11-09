@@ -20,7 +20,7 @@ def test(
     pickle_path="output/E_0.2_nu_0.1_material_jelly_density_0.2__timestep_0.001_vs0.5_totaltime_10.pkl",
     output_dir=None,
     fps=6,
-    device=0,
+    device="cuda",
 ):
     seed = 42
     random.seed(seed)
@@ -29,8 +29,6 @@ def test(
 
     wp.init()
     wp.config.verify_cuda = True
-
-    device = "cuda:{}".format(device)
 
     gaussian_dict, scale, shift = load_gaussians(input_dir)
 

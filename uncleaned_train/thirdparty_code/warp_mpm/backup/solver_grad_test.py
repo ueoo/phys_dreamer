@@ -14,7 +14,7 @@ from tqdm import tqdm
 from warp_rewrite import MyTape
 
 
-def test(input_dir, output_dir=None, fps=6, device=0):
+def test(input_dir, output_dir=None, fps=6, device="cuda"):
     seed = 42
     random.seed(seed)
     np.random.seed(seed)
@@ -22,8 +22,6 @@ def test(input_dir, output_dir=None, fps=6, device=0):
 
     wp.init()
     wp.config.verify_cuda = True
-
-    device = "cuda:{}".format(device)
 
     gaussian_dict, scale, shift = load_gaussians(input_dir)
 

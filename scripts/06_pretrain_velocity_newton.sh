@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY="motion_exp/fast_train_velocity.py"
-dataset_dir="data_NeuROK_sim/flower_images"
-video_dir="data_NeuROK_sim/flower_videos"
-output_dir="output/flower_inverse_sim"
-wandb_name="flower_velo_pretrain"
+export CUDA_VISIBLE_DEVICES=3
+
+PY="motion_exp/train_velocity.py"
+dataset_dir="data_NeuROK_sim/newton_images"
+video_dir="data_NeuROK_sim/newton_videos"
+output_dir="output/newton_inverse_sim"
+wandb_name="newton_velo_pretrain"
 
 
 python "$PY" \

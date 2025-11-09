@@ -29,7 +29,7 @@ from local_utils import (
     apply_grid_bc_w_freeze_pts,
     create_spatial_fields,
     cycle,
-    downsample_with_kmeans_gpu,
+    downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
     find_far_points,
     get_camera_trajectory,
     render_gaussian_seq_w_mask_cam_seq_with_force_with_disp,
@@ -190,7 +190,7 @@ class Trainer:
         3. Setup MPM simulation environment
         """
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         xyzs = self.render_params.gaussians.get_xyz.detach().clone()
         sim_xyzs = xyzs[self.sim_mask_in_raw_gaussian, :]
@@ -246,6 +246,8 @@ class Trainer:
         if downsample_scale > 0 and downsample_scale < 1.0:
             print("Downsample with ratio: ", downsample_scale)
             num_cluster = int(sim_xyzs.shape[0] * downsample_scale)
+            # cap clusters to avoid OOM
+            num_cluster = min(num_cluster, 10000)
 
             # WARNING: this is a GPU implementation, and will be OOM if the number of points is large
             # you might want to use a CPU implementation if the number of points is large
@@ -369,7 +371,7 @@ class Trainer:
     def add_constant_force(self, center_point, radius, force, dt, start_time, end_time):
         xyzs = self.particle_init_position.clone() * self.scale - self.shift
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
         add_constant_force(
             self.mpm_solver,
             self.mpm_state,
@@ -562,7 +564,7 @@ class Trainer:
         else:
             pos_array = None
 
-        device = "cuda:0"
+        device = "cuda"
         data = next(self.dataloader)
         cam = data["cam"][0]
 
@@ -733,7 +735,7 @@ class Trainer:
         substep = self.args.substep  # 1e-4
         self.sim_fields.eval()
         self.velo_fields.eval()
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         (
             density,

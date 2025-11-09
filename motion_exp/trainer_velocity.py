@@ -43,7 +43,7 @@ from local_utils import (
     apply_grid_bc_w_freeze_pts,
     create_spatial_fields,
     cycle,
-    downsample_with_kmeans_gpu,
+    downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
     find_far_points,
     render_gaussian_seq_w_mask_with_disp,
 )
@@ -277,7 +277,7 @@ class Trainer:
 
     def setup_simulation(self, dataset_dir, grid_size=100):
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         xyzs = self.render_params.gaussians.get_xyz.detach().clone()
         sim_xyzs = xyzs[self.sim_mask_in_raw_gaussian, :]
@@ -335,6 +335,8 @@ class Trainer:
         # point cloud resample with kmeans
         downsample_scale = self.args.downsample_scale
         num_cluster = int(sim_xyzs.shape[0] * downsample_scale)
+        # cap clusters to avoid OOM
+        num_cluster = min(num_cluster, 10000)
         sim_xyzs = downsample_with_kmeans_gpu(sim_xyzs, num_cluster)
 
         sim_gaussian_pos = self.render_params.gaussians.get_xyz.detach().clone()[self.sim_mask_in_raw_gaussian, :]
@@ -527,7 +529,7 @@ class Trainer:
         self.sim_fields.train()
         self.velo_fields.train()
         accelerator = self.accelerator
-        device = "cuda:{}".format(accelerator.process_index)
+        device = "cuda"
         data = next(self.dataloader)
         cam = data["cam"][0]
 
@@ -786,7 +788,7 @@ class Trainer:
         self.sim_fields.eval()
         self.velo_fields.eval()
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         time_stamps = np.linspace(0, 1, self.num_frames).astype(np.float32)[1:]
         time_idx = 0
@@ -841,7 +843,7 @@ class Trainer:
                     self.mpm_state,
                     substep,
                     substep_size,
-                    device="cuda:0",
+                    device="cuda",
                 )
 
             pos = wp.to_torch(self.mpm_state.particle_x).clone()
@@ -972,7 +974,7 @@ class Trainer:
     def eval(self):
 
         accelerator = self.accelerator
-        device = "cuda:{}".format(accelerator.process_index)
+        device = "cuda"
         data = next(self.dataloader)
         cam = data["cam"][0]
 

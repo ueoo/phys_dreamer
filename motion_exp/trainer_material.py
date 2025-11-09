@@ -48,7 +48,7 @@ from local_utils import (
     create_motion_model,
     create_spatial_fields,
     cycle,
-    downsample_with_kmeans_gpu,
+    downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
     find_far_points,
     load_motion_model,
     render_gaussian_seq_w_mask_cam_seq,
@@ -334,7 +334,7 @@ class Trainer:
 
     def setup_simulation(self, dataset_dir, grid_size=100):
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         xyzs = self.render_params.gaussians.get_xyz.detach().clone()
         sim_xyzs = xyzs[self.sim_mask_in_raw_gaussian, :]
@@ -393,6 +393,8 @@ class Trainer:
 
         downsample_scale = self.args.downsample_scale
         num_cluster = int(sim_xyzs.shape[0] * downsample_scale)
+        # cap clusters to avoid OOM
+        num_cluster = min(num_cluster, 10000)
         sim_xyzs = downsample_with_kmeans_gpu(sim_xyzs, num_cluster)
 
         sim_gaussian_pos = self.render_params.gaussians.get_xyz.detach().clone()[self.sim_mask_in_raw_gaussian, :]
@@ -599,7 +601,7 @@ class Trainer:
         self.velo_fields.train()
         self.model.eval()
         accelerator = self.accelerator
-        device = "cuda:{}".format(accelerator.process_index)
+        device = "cuda"
         data = next(self.dataloader)
         cam = data["cam"][0]
 
@@ -958,7 +960,7 @@ class Trainer:
         self.sim_fields.eval()
         self.velo_fields.eval()
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         (
             density,
@@ -1005,7 +1007,7 @@ class Trainer:
         prev_state = self.mpm_state
         for i in tqdm(range((self.num_frames - 1) * num_sec)):
             # for substep in range(num_substeps):
-            #     self.mpm_solver.p2g2p(self.mpm_model, self.mpm_state, substep, substep_size, device="cuda:0")
+            #     self.mpm_solver.p2g2p(self.mpm_model, self.mpm_state, substep, substep_size, device="cuda")
             # pos = wp.to_torch(self.mpm_state.particle_x).clone()
 
             for substep_local in range(num_substeps):
@@ -1174,7 +1176,7 @@ class Trainer:
         self.sim_fields.eval()
         self.velo_fields.eval()
 
-        device = "cuda:{}".format(self.accelerator.process_index)
+        device = "cuda"
 
         (
             density,
@@ -1227,7 +1229,7 @@ class Trainer:
             prev_state = self.mpm_state
             for i in tqdm(range(int((self.num_frames - 1) * num_sec))):
                 # for substep in range(num_substeps):
-                #     self.mpm_solver.p2g2p(self.mpm_model, self.mpm_state, substep, substep_size, device="cuda:0")
+                #     self.mpm_solver.p2g2p(self.mpm_model, self.mpm_state, substep, substep_size, device="cuda")
                 # pos = wp.to_torch(self.mpm_state.particle_x).clone()
 
                 for substep_local in range(num_substeps):

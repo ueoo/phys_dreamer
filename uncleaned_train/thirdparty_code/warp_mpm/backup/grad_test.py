@@ -13,11 +13,9 @@ from warp_rewrite import MyTape
 from mpm_utils import *
 
 
-def test(input_dir, output_dir=None, fps=6, device=0):
+def test(input_dir, output_dir=None, fps=6, device="cuda"):
     wp.init()
     wp.config.verify_cuda = True
-
-    device = "cuda:{}".format(device)
 
     gaussian_dict, scale, shift = load_gaussians(input_dir)
 
