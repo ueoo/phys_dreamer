@@ -1,5 +1,7 @@
 import argparse
 import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from motion_exp.trainer_material import Trainer
 from utils.config import create_config
@@ -7,7 +9,7 @@ from utils.config import create_config
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="config.yml")
+    parser.add_argument("--config", type=str, default="./motion_exp/config.yml")
 
     # dataset params
     parser.add_argument(

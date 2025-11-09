@@ -46,6 +46,7 @@ from utils.optimizer import get_linear_schedule_with_warmup
 from warp_mpm.gaussian_sim_utils import get_volume
 from warp_mpm.mpm_data_structure import MPMModelStruct, MPMStateStruct
 from warp_mpm.mpm_solver_diff import MPMWARPDiff
+from datasets.helper import create_dataset
 
 
 logger = get_logger(__name__, log_level="INFO")
@@ -175,9 +176,6 @@ class Trainer:
         if args.checkpoint_path == "None":
             args.checkpoint_path = None
         if args.checkpoint_path is not None:
-
-            if args.video_dir_name in model_dict:
-                args.checkpoint_path = model_dict[args.video_dir_name]
             self.load(args.checkpoint_path)
             trainable_params = list(self.sim_fields.parameters()) + self.E_nu_list
             optim_list = [
@@ -288,7 +286,7 @@ class Trainer:
                 os.makedirs(self.wandb_folder, exist_ok=True)
 
     def init_trainable_params(
-        self,
+        self
     ):
 
         # init young modulus and poisson ratio

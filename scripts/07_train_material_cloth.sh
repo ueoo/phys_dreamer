@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PY="scripts/train_material.py"
+export CUDA_VISIBLE_DEVICES=2
+
+PY="motion_exp/train_material.py"
 dataset_dir="data_NeuROK_sim/cloth_images"
 video_dir="data_NeuROK_sim/cloth_videos"
 output_dir="output/cloth_inverse_sim_material"
@@ -9,7 +11,7 @@ wandb_name="cloth_material_train"
 
 
 # Set this to the velocity checkpoint directory containing model.pt
-VELO_CKPT="output/cloth_inverse_sim/cloth_velo_pretrain_whitebgdecay_1.0_substep_96_se3_field_lr_0.01_tv_0.01_iters_300_sw_2_cw_2/seed0/checkpoint_model_000199"
+VELO_CKPT="output/cloth_inverse_sim/cloth_velo_pretraindecay_1.0_substep_96_se3_field_lr_0.01_tv_0.01_iters_300_sw_2_cw_2/seed0/checkpoint_model_000300"
 
 python "$PY" \
   --dataset_dir "$dataset_dir" \
