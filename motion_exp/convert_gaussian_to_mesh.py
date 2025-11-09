@@ -1,9 +1,6 @@
 import os
 
-from random import gauss
-
 import numpy as np
-import torch
 
 from fire import Fire
 

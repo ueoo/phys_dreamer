@@ -1,13 +1,8 @@
-import argparse
 import logging
 import os
-import random
-import shutil
 
-from time import time
-from typing import List, NamedTuple
+from typing import NamedTuple
 
-import imageio
 import numpy as np
 import point_cloud_utils as pcu
 import torch
@@ -18,54 +13,39 @@ import warp as wp
 from accelerate import Accelerator, DistributedDataParallelKwargs
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
-
-# from motion_rep.utils.torch_utils import get_sync_time
-from einops import rearrange, repeat
-from interface import (
+from mpm_interface import (
     MPMDifferentiableSimulationClean,
     MPMDifferentiableSimulationWCheckpoint,
 )
-from jaxtyping import Float, Int, Shaped
-from omegaconf import OmegaConf
-from PIL import Image
-from torch import Tensor
 from tqdm import tqdm
 
-from datasets.multiview_dataset import MultiviewImageDataset
 from datasets.multiview_dataset import (
     camera_dataset_collate_fn as camera_dataset_collate_fn_img,
 )
-from datasets.multiview_video_dataset import (
-    MultiviewVideoDataset,
-    camera_dataset_collate_fn,
-)
-from fields.se3_field import TemporalKplanesSE3fields
+from datasets.multiview_video_dataset import camera_dataset_collate_fn
 from gaussian_3d.gaussian_renderer.feat_render import render_feat_gaussian
 from gaussian_3d.scene import GaussianModel
-from local_utils import (
+from motion_exp.local_utils import (
     LinearStepAnneal,
     apply_grid_bc_w_freeze_pts,
     create_motion_model,
     create_spatial_fields,
     cycle,
+)
+from motion_exp.local_utils import (
     downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
+)
+from motion_exp.local_utils import (
     find_far_points,
     load_motion_model,
-    render_gaussian_seq_w_mask_cam_seq,
     render_gaussian_seq_w_mask_with_disp,
 )
-from utils.config import create_config
 from utils.img_utils import compute_psnr, compute_ssim
-from utils.io_utils import save_gif_imageio, save_video_imageio
+from utils.io_utils import save_gif_imageio
 from utils.optimizer import get_linear_schedule_with_warmup
 from warp_mpm.gaussian_sim_utils import get_volume
-from warp_mpm.mpm_data_structure import (
-    MPMModelStruct,
-    MPMStateStruct,
-    get_float_array_product,
-)
+from warp_mpm.mpm_data_structure import MPMModelStruct, MPMStateStruct
 from warp_mpm.mpm_solver_diff import MPMWARPDiff
-from warp_mpm.warp_utils import from_torch_safe
 
 
 logger = get_logger(__name__, log_level="INFO")

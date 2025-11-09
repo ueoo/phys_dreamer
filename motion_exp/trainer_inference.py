@@ -218,7 +218,7 @@ class Trainer:
             # WARNING: this is a GPU implementation, and will be OOM if the number of points is large
             # you might want to use a CPU implementation if the number of points is large
             # For CPU implementation: uncomment the following lines
-            # from local_utils import downsample_with_kmeans
+            # from motion_exp.local_utils import downsample_with_kmeans
             # sim_xyzs = downsample_with_kmeans(sim_xyzs.detach().cpu().numpy(), num_cluster)
             # sim_xyzs = torch.from_numpy(sim_xyzs).float().to(device)
 

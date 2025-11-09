@@ -1,11 +1,6 @@
-import argparse
-import logging
 import os
-import random
-import shutil
 
-from time import time
-from typing import List, NamedTuple
+from typing import NamedTuple
 
 import numpy as np
 import point_cloud_utils as pcu
@@ -17,39 +12,27 @@ import warp as wp
 from accelerate import Accelerator, DistributedDataParallelKwargs
 from accelerate.logging import get_logger
 from accelerate.utils import ProjectConfiguration, set_seed
-from einops import rearrange, repeat
-from interface import (
-    MPMDifferentiableSimulation,
-    MPMDifferentiableSimulationWCheckpoint,
-)
-from jaxtyping import Float, Int, Shaped
-from omegaconf import OmegaConf
-from torch import Tensor
+from mpm_interface import MPMDifferentiableSimulationWCheckpoint
 from tqdm import tqdm, trange
 
 from datasets.helper import create_dataset
-from datasets.multiview_dataset import MultiviewImageDataset
 from datasets.multiview_dataset import (
     camera_dataset_collate_fn as camera_dataset_collate_fn_img,
 )
-from datasets.multiview_video_dataset import (
-    MultiviewVideoDataset,
-    camera_dataset_collate_fn,
-)
-from gaussian_3d.gaussian_renderer.feat_render import render_feat_gaussian
+from datasets.multiview_video_dataset import camera_dataset_collate_fn
 from gaussian_3d.scene import GaussianModel
-from local_utils import (
+from motion_exp.local_utils import (
     LinearStepAnneal,
     apply_grid_bc_w_freeze_pts,
     create_spatial_fields,
     cycle,
-    downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
-    find_far_points,
-    render_gaussian_seq_w_mask_with_disp,
 )
-from utils.config import create_config
+from motion_exp.local_utils import (
+    downsample_with_kmeans_gpu_with_chunk as downsample_with_kmeans_gpu,
+)
+from motion_exp.local_utils import find_far_points, render_gaussian_seq_w_mask_with_disp
 from utils.img_utils import compute_psnr, compute_ssim
-from utils.io_utils import save_gif_imageio, save_video_imageio
+from utils.io_utils import save_gif_imageio
 from utils.optimizer import get_linear_schedule_with_warmup
 from warp_mpm.gaussian_sim_utils import get_volume
 from warp_mpm.mpm_data_structure import (

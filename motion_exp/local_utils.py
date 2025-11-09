@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import torch
 
-from jaxtyping import Float, Int, Shaped
+from jaxtyping import Float
 from omegaconf import OmegaConf
 from sklearn.cluster import KMeans
 from torch import Tensor
