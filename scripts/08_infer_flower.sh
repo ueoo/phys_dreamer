@@ -10,4 +10,7 @@ python "$PY" \
   --scene_name "$SCENE_CFG" \
   --dataset_dir "$DATASET_DIR" \
   --output_dir "$OUT_DIR" \
+  --point_id 0 \
+  --velo_scaling 1.0 \
+  --cam_id 2 \
   --run_eval

@@ -131,9 +131,7 @@ class Trainer:
             self.load(args.checkpoint_path)
         self.sim_fields, self.velo_fields = accelerator.prepare(self.sim_fields, self.velo_fields)
 
-    def init_trainable_params(
-        self,
-    ):
+    def init_trainable_params(self):
         # init young modulus and poisson ratio
         # from pre-optimized;  gres32 step 128.  300 epoch. lr 10.0  psnr: 27.72028086735652.  Stop at 100epoch
         young_numpy = np.array([self.demo_cfg["init_youngs"]]).astype(np.float32)
@@ -481,7 +479,9 @@ class Trainer:
         #    we will track foreground points with mask: self.sim_mask_in_raw_gaussian
         gaussian_dir = os.path.dirname(gaussian_path)
 
-        clean_points_path = os.path.join(gaussian_dir, "point_cloud.ply")
+        clean_points_path = os.path.join(gaussian_dir, "clean_object_points.ply")
+        if not os.path.exists(clean_points_path):
+            clean_points_path = os.path.join(gaussian_dir, "point_cloud.ply")
 
         assert os.path.exists(
             clean_points_path
