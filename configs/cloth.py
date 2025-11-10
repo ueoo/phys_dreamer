@@ -1,12 +1,12 @@
 import numpy as np
 
 
-dataset_dir = "data_NeuROK_sim/flower_images"
-result_dir = "./output/flower_results_3"
-exp_name = "flower"
+dataset_dir = "data_NeuROK_sim/cloth_images"
+result_dir = "./output/cloth_results"
+exp_name = "cloth"
 
 model_list = [
-    "./output/flower_inverse_sim_material/flower_material_traindecay_1.0_substep_768_se3_field_lr_0.001_tv_0.0001_iters_200_sw_6_cw_1/seed0/checkpoint_model_000079"
+    "./output/cloth_inverse_sim_material/cloth_material_traindecay_1.0_substep_768_se3_field_lr_0.001_tv_0.0001_iters_200_sw_6_cw_1/seed0/checkpoint_model_000099"
 ]
 
 focus_point_list = [
@@ -22,37 +22,33 @@ camera_cfg_list = [
     },
     {
         "type": "interpolation",
-        "start_frame": "039.png",
-        "end_frame": "101.png",
+        "start_frame": "055.png",
+        "end_frame": "088.png",
     },
     # real captured viewpoint
     {
         "type": "interpolation",
-        "start_frame": "039.png",
+        "start_frame": "055.png",
     },
     # another viewpoint
     {
         "type": "interpolation",
-        "start_frame": "101.png",
+        "start_frame": "088.png",
     },
 ]
 
 simulate_cfg = {
     "substep": 768,
     "grid_size": 64,
-    "init_young": 1e7,
+    "init_young": 1e6,
     "downsample_scale": 0.1,  # downsample the points to speed up the simulation
 }
 
 
 points_list = [
-    np.array([-0.003, -0.208, 0.276]),
-    np.array([0.016, -0.001, 0.000]),
-    np.array([-0.187, -0.055, 0.099]),
-    np.array([-0.162, 0.238, 0.389]),
-    np.array([0.246, 0.067, 0.246]),
-    np.array([0.117, 0.367, 0.076]),
-    np.array([-0.246, 0.407, -0.004]),
+    np.array([-0.001, 0.445, -0.072]),
+    np.array([-0.487, 0.092, -0.035]),
+    np.array([0.488, 0.114, -0.094]),
 ]
 
 force_directions = [

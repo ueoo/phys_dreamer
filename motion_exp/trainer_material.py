@@ -51,15 +51,6 @@ from datasets.helper import create_dataset
 
 logger = get_logger(__name__, log_level="INFO")
 
-# model_dict = {
-#     # psnr: 29.9
-#     # "videos": "../../output/inverse_sim/fast_hat_velopretraindecay_1.0_substep_96_se3_field_lr_0.001_tv_0.01_iters_300_sw_2_cw_2/seed0/checkpoint_model_000299",
-#     # psnr: 30.25
-#     "videos": "../../output/inverse_sim/fast_hat_velopretrain_g48-192decay_1.0_substep_192_se3_field_lr_0.003_tv_0.01_iters_300_sw_2_cw_2/seed0/checkpoint_model_000199",
-#     # psnr: 30.52
-#     "videos_2": "../../output/inverse_sim/fast_hat_videos2_velopretraindecay_1.0_substep_96_se3_field_lr_0.003_tv_0.01_iters_300_sw_2_cw_2/seed0/checkpoint_model_000199",
-# }
-
 
 class Trainer:
     def __init__(self, args):
@@ -285,9 +276,7 @@ class Trainer:
                 self.wandb_folder = run.dir
                 os.makedirs(self.wandb_folder, exist_ok=True)
 
-    def init_trainable_params(
-        self
-    ):
+    def init_trainable_params(self):
 
         # init young modulus and poisson ratio
 
@@ -758,13 +747,9 @@ class Trainer:
                 log_loss_dict["entropy"].append(entropy.item())
 
                 print(
-                    psnr.item(),
-                    end_time_idx,
-                    youngs_modulus.max().item(),
-                    density.max().item(),
+                    f"psnr: {psnr.item()}, end_time_idx: {end_time_idx}, youngs_modulus: {youngs_modulus.max().item()}, density: {density.max().item()}"
                 )
                 log_psnr_dict["psnr_frame_{}".format(end_time_idx)] = psnr.item()
-                # print(psnr.item(), end_time_idx, youngs_modulus.max().item(), density.max().item())
 
         nu_grad_norm = self.E_nu_list[1].grad.norm(2).item()
         spatial_grad_norm = 0
@@ -815,17 +800,14 @@ class Trainer:
 
         print(log_loss_dict)
         print(
-            "nu: ",
-            self.E_nu_list[1].item(),
-            nu_grad_norm,
-            spatial_grad_norm,
-            velo_grad_norm,
-            "young_mean, max:",
-            youngs_modulus.mean().item(),
-            youngs_modulus.max().item(),
-            do_velo_opt,
-            "init_velo_mean:",
-            init_velo_mean,
+            f"nu: {self.E_nu_list[1].item()}",
+            f"nu_grad_norm: {nu_grad_norm}",
+            f"spatial_grad_norm: {spatial_grad_norm}",
+            f"velo_grad_norm: {velo_grad_norm}",
+            f"young_mean: {youngs_modulus.mean().item()}",
+            f"young_max: {youngs_modulus.max().item()}",
+            f"do_velo_opt: {do_velo_opt}",
+            f"init_velo_mean: {init_velo_mean}",
         )
 
         if accelerator.is_main_process and (self.step % self.wandb_iters == 0):
@@ -860,8 +842,6 @@ class Trainer:
                 wandb_dict["first_psnr"] = first_psnr
                 wandb_dict["last_psnr"] = last_psnr
                 wandb_dict.update(log_loss_dict)
-
-                # add young render
 
                 youngs_norm = youngs_modulus - youngs_modulus.min() + 1e-2
                 young_color = youngs_norm / torch.quantile(youngs_norm, 0.99)

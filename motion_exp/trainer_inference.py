@@ -568,6 +568,7 @@ class Trainer:
         num_substeps = int(substep)
 
         init_xyzs = self.particle_init_position.clone()
+        print(f"inferece youngs_modulus: {youngs_modulus.shape} max: {youngs_modulus.max().item()}, min: {youngs_modulus.min().item()}")
 
         init_velocity[query_mask, :] = init_velocity[query_mask, :] * velo_scaling
         if apply_force:

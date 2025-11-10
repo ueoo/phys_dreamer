@@ -272,7 +272,7 @@ class Trainer:
         scale = (pos_max - pos_min) * 1.8
         shift = -pos_min + (pos_max - pos_min) * 0.25
         self.scale, self.shift = scale, shift
-        print("scale, shift", scale, shift)
+        print("scale: {}, shift: {}".format(scale, shift))
 
         # filled
         filled_in_points_path = os.path.join(dataset_dir, "internal_filled_points.ply")

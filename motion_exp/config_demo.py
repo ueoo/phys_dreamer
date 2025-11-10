@@ -69,7 +69,7 @@ class DemoParams(object):
             cfg["force"] = self.force_directions[force_id] * force_mag
             cfg["camera_cfg"] = self.camera_cfg_list[cam_id]
             cfg["cam_id"] = cam_id
-            cfg["force_duration"] = 0.75
+            cfg["force_duration"] = 0.25  # 0.75
             cfg["force_radius"] = 0.1
             cfg["substep"] = self.simulate_cfg["substep"]
             cfg["grid_size"] = self.simulate_cfg["grid_size"]

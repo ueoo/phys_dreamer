@@ -293,11 +293,12 @@ class MultiviewVideoDataset(Dataset):
             assert os.path.exists(video_path), f"video path {video_path} not found!"
             video_reader = VideoReader(video_path)
             video_length = len(video_reader)
+            # [nf, 3, H, W], RGB, [0, 255]
             video_clip = (
                 torch.from_numpy(video_reader.get_batch(np.arange(0, video_length)).asnumpy())
                 .permute(0, 3, 1, 2)
                 .contiguous()
-            )  # [nf, 3, H, W], RGB, [0, 255]
+            )
         else:
             video_clip = torch.from_numpy(self.video_numpy_list[idx]).permute(0, 3, 1, 2).contiguous()
         video_clip = video_clip / 255.0
@@ -438,9 +439,7 @@ class MultiviewVideoDataset(Dataset):
 
 
 def camera_dataset_collate_fn(batch):
-    ret_dict = {
-        "cam": [],
-    }
+    ret_dict = {"cam": []}
 
     for key in batch[0].keys():
         if key == "cam":
