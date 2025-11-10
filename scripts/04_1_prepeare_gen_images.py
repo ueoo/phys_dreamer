@@ -96,7 +96,7 @@ def update_blender_transforms_fov(transforms_path, ratio_canvas_to_content):
 
 if __name__ == "__main__":
     data_root = "data_NeuROK_sim/"
-    secen_name = "cloth"
+    secen_name = "laptop"
     out_scene_name = f"{secen_name}_images"
     out_dir = os.path.join(data_root, out_scene_name)
     os.makedirs(out_dir, exist_ok=True)

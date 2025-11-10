@@ -73,3 +73,50 @@ import os
 # 078, 078_motion_9
 # 080, 080_motion_8
 # 087, 087_motion_10
+
+
+### Shirt frames
+# 052, 052_motion_8
+# 053, 053_motion_9
+# 054, 054_motion_5
+# 055, 055_motion_8
+# 056, 056_motion_7
+# 057, 057_motion_10
+# 058, 058_motion_5
+# 059, 059_motion_7
+# 060, 060_motion_7
+# 061, 061_motion_5
+# 062, 062_motion_8
+# 063, 063_motion_8
+
+
+### Lamp frames
+# 040, 040_motion_5
+# 041, 041_motion_9
+# 042, 042_motion_6
+# 043, 043_motion_6
+# 044, 044_motion_7
+# 045, 045_motion_7
+# 047, 047_motion_10
+# 048, 048_motion_6
+# 049, 049_motion_10
+# 050, 050_motion_7
+# 051, 051_motion_6
+
+# 046, no good motion
+
+
+### Laptop frames
+# 049, 049_motion_7
+# 050, 050_motion_6
+# 051, 051_motion_5
+# 052, 052_motion_7
+# 053, 053_motion_8
+# 054, 054_motion_7
+# 055, 055_motion_9
+# 056, 056_motion_6
+# 057, 057_motion_10
+# 058, 058_motion_6
+# 059, 059_motion_8
+# 060, 060_motion_8
+# 070, 070_motion_7

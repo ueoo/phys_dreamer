@@ -19,7 +19,7 @@ def main():
     ap.add_argument("--fps", type=int, default=12)
     args = ap.parse_args()
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda"
     pipe = StableVideoDiffusionPipeline.from_pretrained(
         "stabilityai/stable-video-diffusion-img2vid", torch_dtype=torch.float16 if device == "cuda" else torch.float32
     ).to(device)
@@ -42,6 +42,12 @@ def main():
         input_frame_ids = [55, 59, 60, 61, 63, 67, 69, 72, 73, 75, 86, 88]
     elif "newton" in args.dataset_dir:
         input_frame_ids = [55, 58, 59, 63, 65, 70, 71, 78, 80, 87]
+    elif "shirt" in args.dataset_dir:
+        input_frame_ids = [52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63]
+    elif "lamp" in args.dataset_dir:
+        input_frame_ids = [40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]
+    elif "laptop" in args.dataset_dir:
+        input_frame_ids = [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 70]
     else:
         raise ValueError(f"Unknown dataset: {args.dataset_dir}")
     img_paths = [os.path.join(args.dataset_dir, f"{frame_id:03d}.png") for frame_id in input_frame_ids]
