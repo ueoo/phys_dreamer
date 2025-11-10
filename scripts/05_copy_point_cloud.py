@@ -4,8 +4,8 @@ import shutil
 from tqdm import tqdm
 
 
-# scene_names = ["cloth", "flower", "newton", "box", "bow"]
-scene_names = ["shirt", "lamp", "laptop"]
+# scene_names = ["cloth", "flower", "newton", "box", "bow", "shirt", "lamp"]
+scene_names = ["laptop"]
 
 
 for scene_name in tqdm(scene_names):
