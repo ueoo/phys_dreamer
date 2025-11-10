@@ -1,6 +1,6 @@
 import numpy as np
 
-from .model_config import (
+from .config_model import (
     camera_cfg_list,
     dataset_dir,
     exp_name,

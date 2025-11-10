@@ -107,9 +107,9 @@ import os
 
 
 ### Laptop frames
-# 049, 049_motion_7
+# 049, 049_motion_5
 # 050, 050_motion_6
-# 051, 051_motion_5
+# 051, 051_motion_6
 # 052, 052_motion_7
 # 053, 053_motion_8
 # 054, 054_motion_7

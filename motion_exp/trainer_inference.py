@@ -206,7 +206,7 @@ class Trainer:
         if "downsample_scale" in self.demo_cfg:
             downsample_scale = self.demo_cfg["downsample_scale"]
         else:
-            downsample_scale = args.downsample_scale
+            downsample_scale = self.args.downsample_scale
         if downsample_scale > 0 and downsample_scale < 1.0:
             print("Downsample with ratio: ", downsample_scale)
             num_cluster = int(sim_xyzs.shape[0] * downsample_scale)

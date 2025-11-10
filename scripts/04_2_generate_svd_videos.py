@@ -17,6 +17,8 @@ def main():
 
     ap.add_argument("--num_frames", type=int, default=25)
     ap.add_argument("--fps", type=int, default=12)
+    ap.add_argument("--gpu_id", type=int, default=0)
+    ap.add_argument("--gpu_num", type=int, default=1)
     args = ap.parse_args()
 
     device = "cuda"
@@ -27,6 +29,7 @@ def main():
         pipe.enable_model_cpu_offload()
     except Exception:
         pass
+    pipe.set_progress_bar_config(disable=True)
 
     out_dir = args.output_dir
     os.makedirs(out_dir, exist_ok=True)
@@ -50,10 +53,12 @@ def main():
         input_frame_ids = [49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 70]
     else:
         raise ValueError(f"Unknown dataset: {args.dataset_dir}")
+
+    input_frame_ids = input_frame_ids[args.gpu_id :: args.gpu_num]
     img_paths = [os.path.join(args.dataset_dir, f"{frame_id:03d}.png") for frame_id in input_frame_ids]
     motion_bucket_ids = list(range(5, 11))
 
-    for ip in tqdm(img_paths):
+    for ip in tqdm(img_paths, desc=f"Generating videos for GPU {args.gpu_id}/{args.gpu_num}"):
         base = os.path.splitext(os.path.basename(ip))[0]
         img = Image.open(ip).convert("RGB")
         for motion_bucket_id in motion_bucket_ids:

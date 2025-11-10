@@ -3,8 +3,8 @@ import os
 from shutil import copyfile
 
 
-# scene_names = ["flower", "bow", "box", "cloth", "newton",]
-scene_names = ["shirt", "lamp", "laptop"]
+# scene_names = ["flower", "bow", "box", "cloth", "newton", "shirt", "lamp"]
+scene_names = ["laptop"]
 for scene_name in scene_names:
     svd_all_videos_path = f"data_NeuROK_sim/{scene_name}_svd_videos"
 
@@ -111,9 +111,9 @@ for scene_name in scene_names:
         ]
     elif "laptop" == scene_name:
         video_files = [
-            "049_motion_7",
+            "049_motion_5",
             "050_motion_6",
-            "051_motion_5",
+            "051_motion_6",
             "052_motion_7",
             "053_motion_8",
             "054_motion_7",
