@@ -1,7 +1,7 @@
 import numpy as np
 
 
-dataset_dir = "data_NeuROK_sim/box_images"
+dataset_dir = "data_NeuROK_sim/box_images_infer"
 result_dir = "./output/box_results"
 exp_name = "box"
 
@@ -34,6 +34,10 @@ camera_cfg_list = [
     {
         "type": "interpolation",
         "start_frame": "097.png",
+    },
+    {
+        "type": "interpolation",
+        "start_frame": "000.png",
     },
 ]
 

@@ -19,6 +19,7 @@ python "$PY" \
   --video_dir "$video_dir" \
   --checkpoint_path "$VELO_CKPT" \
   --output_dir "$output_dir" \
+  --downsample_scale 0.01 \
   --use_wandb \
   --wandb_name "$wandb_name" \
   --wandb_entity "ueoo-cs" \

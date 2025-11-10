@@ -504,7 +504,7 @@ def render_gaussian_seq_w_mask_with_disp(cam, render_params, orign_points, top_k
 
 
 def render_gaussian_seq_w_mask_with_disp_for_figure(
-    cam, render_params, orign_points, top_k_index, disp_list, update_mask
+    cam, render_params, orign_points, top_k_index, disp_list, update_mask, gaussian_save_path=None
 ):
     """
     Args:
@@ -538,6 +538,9 @@ def render_gaussian_seq_w_mask_with_disp_for_figure(
         gaussians._rotation[update_mask, ...] = new_rotation
 
         cov3D_precomp = None
+
+        if gaussian_save_path is not None:
+            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i}.ply")
 
         img = render_gaussian(
             render_cam,
@@ -807,6 +810,7 @@ def render_gaussian_seq_w_mask_cam_seq_with_force_with_disp(
     pts_index,
     force,
     force_steps,
+    gaussian_save_path=None,
 ):
 
     force_in_2d_scale = 80  # unit as pixel
@@ -827,6 +831,9 @@ def render_gaussian_seq_w_mask_cam_seq_with_force_with_disp(
         gaussians._rotation[update_mask, ...] = new_rotation
 
         cov3D_precomp = None
+
+        if gaussian_save_path is not None:
+            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i}.ply")
 
         img = render_gaussian(
             cam_list[i],
