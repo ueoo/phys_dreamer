@@ -1,22 +1,22 @@
 #!/usr/bin/env bash
 {
 set -euo pipefail
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=2
 
 PY="motion_exp/inference.py"
-SCENE_CFG="bow"  # adjust; see phys_dreamer/configs/*.py
-DATASET_DIR="data_NeuROK_sim/bow_images"
-OUT_DIR="output/bow_results"
+SCENE_CFG="lamp"  # adjust; see phys_dreamer/configs/*.py
+DATASET_DIR="data_NeuROK_sim/lamp_images"
+OUT_DIR="output/lamp_results"
 
 python "$PY" \
   --scene_name "$SCENE_CFG" \
   --dataset_dir "$DATASET_DIR" \
   --output_dir "$OUT_DIR" \
   --apply_force \
-  --force_id 1 \
+  --force_id 3 \
   --force_mag 1.0 \
   --point_id 0 \
-  --velo_scaling 5.0 \
+  --velo_scaling 1.0 \
   --cam_id 2 \
   --run_eval
 

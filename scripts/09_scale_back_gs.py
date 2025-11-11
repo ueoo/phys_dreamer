@@ -8,16 +8,10 @@ from p_tqdm import p_umap
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from gaussian_3d.scene import GaussianModel
 
-scene_names = [
-    "box",
-    "bow",
-    "cloth",
-    "flower",
-    "newton",
-]
+scene_names = ["lamp"]
 
 
-# scene_names = ["lamp", "shirt", "laptop"]
+# scene_names = ["box", "bow", "cloth", "flower", "newton", "lamp", "shirt", "laptop"]
 
 jobs = []
 
@@ -45,8 +39,8 @@ for scene_name in scene_names:
         shutil.copy(gaussian_path, copy_gaussian_path)
 
         out_gaussian_path = os.path.join(save_path, f"gaussian_{i:02d}.ply")
-        if os.path.exists(out_gaussian_path):
-            continue
+        # if os.path.exists(out_gaussian_path):
+        #     continue
 
         jobs.append((gaussian_path, scale, out_gaussian_path))
 

@@ -540,7 +540,7 @@ def render_gaussian_seq_w_mask_with_disp_for_figure(
         cov3D_precomp = None
 
         if gaussian_save_path is not None:
-            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i:03d}.ply")
+            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i:02d}.ply")
 
         img = render_gaussian(
             render_cam,
@@ -833,7 +833,7 @@ def render_gaussian_seq_w_mask_cam_seq_with_force_with_disp(
         cov3D_precomp = None
 
         if gaussian_save_path is not None:
-            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i:03d}.ply")
+            gaussians.save_ply(gaussian_save_path + f"/gaussian_{i:02d}.ply")
 
         img = render_gaussian(
             cam_list[i],
