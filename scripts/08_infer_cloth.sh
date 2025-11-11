@@ -2,7 +2,7 @@
 {
 set -euo pipefail
 
-export CUDA_VISIBLE_DEVICES=2
+export CUDA_VISIBLE_DEVICES=3
 
 PY="motion_exp/inference.py"
 SCENE_CFG="cloth"  # adjust; see phys_dreamer/configs/*.py

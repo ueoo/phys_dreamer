@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from typing import NamedTuple
 
@@ -52,6 +53,33 @@ from datasets.helper import create_dataset
 logger = get_logger(__name__, log_level="INFO")
 
 
+def _find_latest_checkpoint_dir(base_dir: str):
+    """
+    Return (latest_checkpoint_path, step) under base_dir, or (None, None) if not found.
+    """
+    try:
+        entries = [
+            d
+            for d in os.listdir(base_dir)
+            if d.startswith("checkpoint_model_") and os.path.isdir(os.path.join(base_dir, d))
+        ]
+    except FileNotFoundError:
+        return None, None
+    latest_dir = None
+    latest_step = -1
+    for d in entries:
+        m = re.search(r"checkpoint_model_(\d+)$", d)
+        if not m:
+            continue
+        step = int(m.group(1))
+        if step > latest_step:
+            latest_step = step
+            latest_dir = os.path.join(base_dir, d)
+    if latest_dir is None:
+        return None, None
+    return latest_dir, latest_step
+
+
 class Trainer:
     def __init__(self, args):
         self.args = args
@@ -91,6 +119,15 @@ class Trainer:
 
         set_seed(args.seed + accelerator.process_index)
         print("process index", accelerator.process_index)
+        # Auto-resume: prefer latest checkpoint in current output directory if available
+        output_path_candidate = os.path.join(logging_dir, f"seed{args.seed}")
+        latest_ckpt, latest_step = _find_latest_checkpoint_dir(output_path_candidate)
+        if latest_ckpt is not None:
+            logger.info(f"Auto-resume: found checkpoint {latest_ckpt} (step {latest_step})")
+            args.checkpoint_path = latest_ckpt
+            self._resume_step = latest_step
+        else:
+            self._resume_step = None
         if accelerator.is_main_process:
             output_path = os.path.join(logging_dir, f"seed{args.seed}")
             os.makedirs(output_path, exist_ok=True)
@@ -251,6 +288,8 @@ class Trainer:
 
         # setup train info
         self.step = 0
+        if getattr(self, "_resume_step", None) is not None:
+            self.step = int(self._resume_step)
         self.batch_size = args.batch_size
         self.tv_loss_weight = args.tv_loss_weight
 

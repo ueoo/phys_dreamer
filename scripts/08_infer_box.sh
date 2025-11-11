@@ -15,7 +15,7 @@ python "$PY" \
   --output_dir "$OUT_DIR" \
   --point_id 0 \
   --velo_scaling 1.0 \
-  --cam_id 4 \
+  --cam_id 2 \
   --run_eval
 
 exit 0

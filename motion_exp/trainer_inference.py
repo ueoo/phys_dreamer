@@ -661,7 +661,7 @@ class Trainer:
                 self.top_k_index,
                 pos_diff_list,
                 self.sim_mask_in_raw_gaussian,
-                gaussian_save_path=os.path.dirname(pos_path)
+                gaussian_save_path=os.path.dirname(pos_path),
             )
             video_numpy = video_array.detach().cpu().numpy() * 255
             video_numpy = np.clip(video_numpy, 0, 255).astype(np.uint8)
@@ -681,7 +681,7 @@ class Trainer:
                 closest_idx,
                 render_force,
                 force_duration_steps,
-                gaussian_save_path=os.path.dirname(pos_path)
+                gaussian_save_path=os.path.dirname(pos_path),
             )
             video_numpy = np.transpose(video_numpy, [0, 2, 3, 1])
 
